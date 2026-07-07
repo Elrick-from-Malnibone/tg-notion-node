@@ -485,3 +485,44 @@ body {
     white-space: pre-wrap;
     margin-bottom: 16px;
 }
+
+.note-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.menu-btn {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    font-size: 20px;
+    cursor: pointer;
+    padding: 0 5px;
+    line-height: 1;
+}
+
+.context-menu {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 5px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+
+.context-menu button {
+    display: block;
+    width: 100%;
+    padding: 10px 15px;
+    border: none;
+    background: none;
+    color: var(--text);
+    text-align: left;
+    font-size: 14px;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.context-menu button:hover {
+    background: var(--border);
+}

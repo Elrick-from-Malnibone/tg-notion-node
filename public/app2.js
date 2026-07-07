@@ -51,16 +51,34 @@ function renderNotes(notes) {
     }
     let html = '';
     notes.forEach(note => {
+        const preview = note.content ? note.content.substring(0, 100) : '';
         html += `
             <div class="note-card" onclick="viewNote(${note.id}, '${escapeHtml(note.title)}', '${escapeHtml(note.content || '')}')">
-                <h3>${escapeHtml(note.title)}</h3>
-                <p>${escapeHtml(note.content || '')}</p>
+                <div class="note-header">
+                    <h3>${escapeHtml(note.title)}</h3>
+                    <button class="menu-btn" onclick="event.stopPropagation(); showNoteMenu(event, ${note.id})">⋯</button>
+                </div>
+                ${preview ? `<p>${escapeHtml(preview)}${note.content.length > 100 ? '...' : ''}</p>` : ''}
                 <span class="note-date">${note.created_at}</span>
-                <button class="delete-btn" data-id="${note.id}" onclick="event.stopPropagation(); deleteNote(${note.id})">🗑</button>
             </div>
         `;
     });
     content.innerHTML = html;
+}
+
+function showNoteMenu(event, id) {
+    const menu = document.createElement('div');
+    menu.className = 'context-menu';
+    menu.innerHTML = `
+        <button onclick="deleteNote(${id}); this.parentElement.remove()">🗑 Удалить</button>
+        <button onclick="this.parentElement.remove()">✕ Отмена</button>
+    `;
+    menu.style.position = 'fixed';
+    menu.style.top = event.clientY + 'px';
+    menu.style.right = '10px';
+    menu.style.zIndex = '1000';
+    document.body.appendChild(menu);
+    setTimeout(() => document.addEventListener('click', () => menu.remove(), { once: true }), 0);
 }
 
 function viewNote(id, title, content) {
@@ -69,7 +87,7 @@ function viewNote(id, title, content) {
         <div class="form">
             <h3>${title}</h3>
             <p>${content || '(пусто)'}</p>
-            <button class="btn btn-secondary" onclick="loadNotes()">Назад</button>
+            <button class="btn btn-secondary" onclick="loadNotes()">← Назад</button>
         </div>
     `;
 }
@@ -79,7 +97,7 @@ function showNoteForm() {
     content.innerHTML = `
         <div class="form">
             <input type="text" id="noteTitle" placeholder="Название заметки" class="input">
-            <textarea id="noteContent" placeholder="Содержимое" class="textarea" rows="4"></textarea>
+            <textarea id="noteContent" placeholder="Содержимое" class="textarea" rows="6"></textarea>
             <div class="form-buttons">
                 <button class="btn btn-primary" id="saveNoteBtn">Сохранить</button>
                 <button class="btn btn-secondary" id="cancelNoteBtn">Отмена</button>
@@ -98,13 +116,11 @@ function showNoteForm() {
 }
 
 async function deleteNote(id) {
-    if (confirm('Удалить заметку?')) {
-        await apiDelete(`${API}?id=${id}&user_id=${tg.initDataUnsafe.user.id}`);
-        loadNotes();
-    }
+    await apiDelete(`${API}?id=${id}&user_id=${tg.initDataUnsafe.user.id}`);
+    loadNotes();
 }
 
-// ====== ЗАДАЧИ ======
+// ====== ЗАДАЧИ (как в прошлой версии) ======
 function loadTasks() {
     const tasks = JSON.parse(localStorage.getItem('tgnotion_tasks') || '[]');
     renderTasks(tasks);
@@ -120,13 +136,30 @@ function renderTasks(tasks) {
     tasks.forEach((task, index) => {
         html += `
             <div class="note-card">
-                <h3 style="${task.done ? 'text-decoration: line-through' : ''}">${task.done ? '✅ ' : ''}${escapeHtml(task.title)}</h3>
-                <button class="btn btn-secondary" onclick="toggleTask(${index})" style="margin-right: 5px;">${task.done ? '↩' : '✓'}</button>
-                <button class="delete-btn" onclick="deleteTask(${index})">🗑</button>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <input type="checkbox" ${task.done ? 'checked' : ''} onchange="toggleTask(${index})" style="width: 20px; height: 20px; accent-color: var(--accent);">
+                    <span style="flex: 1; ${task.done ? 'text-decoration: line-through; color: var(--text-secondary);' : ''}">${escapeHtml(task.title)}</span>
+                    <button class="menu-btn" onclick="event.stopPropagation(); showTaskMenu(event, ${index})">⋯</button>
+                </div>
             </div>
         `;
     });
     content.innerHTML = html;
+}
+
+function showTaskMenu(event, index) {
+    const menu = document.createElement('div');
+    menu.className = 'context-menu';
+    menu.innerHTML = `
+        <button onclick="deleteTask(${index}); this.parentElement.remove()">🗑 Удалить</button>
+        <button onclick="this.parentElement.remove()">✕ Отмена</button>
+    `;
+    menu.style.position = 'fixed';
+    menu.style.top = event.clientY + 'px';
+    menu.style.right = '10px';
+    menu.style.zIndex = '1000';
+    document.body.appendChild(menu);
+    setTimeout(() => document.addEventListener('click', () => menu.remove(), { once: true }), 0);
 }
 
 function showTaskForm() {
@@ -160,12 +193,10 @@ function toggleTask(index) {
 }
 
 function deleteTask(index) {
-    if (confirm('Удалить задачу?')) {
-        const tasks = JSON.parse(localStorage.getItem('tgnotion_tasks') || '[]');
-        tasks.splice(index, 1);
-        localStorage.setItem('tgnotion_tasks', JSON.stringify(tasks));
-        renderTasks(tasks);
-    }
+    const tasks = JSON.parse(localStorage.getItem('tgnotion_tasks') || '[]');
+    tasks.splice(index, 1);
+    localStorage.setItem('tgnotion_tasks', JSON.stringify(tasks));
+    renderTasks(tasks);
 }
 
 // ====== ОБЩЕЕ ======
@@ -175,9 +206,9 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
-document.querySelectorAll('.tab').forEach(tab => {
+document.querySelectorAll('.tab[data-tab]').forEach(tab => {
     tab.addEventListener('click', () => {
-        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.tab[data-tab]').forEach(t => t.classList.remove('active'));
         tab.classList.add('active');
         currentTab = tab.dataset.tab;
         currentTab === 'notes' ? loadNotes() : loadTasks();
@@ -188,7 +219,7 @@ document.getElementById('addBtn').addEventListener('click', () => {
     currentTab === 'notes' ? showNoteForm() : showTaskForm();
 });
 
-// Кнопка смены темы (добавим в index.html)
+// Тема
 const themeBtn = document.getElementById('themeBtn');
 if (themeBtn) {
     themeBtn.addEventListener('click', () => {
