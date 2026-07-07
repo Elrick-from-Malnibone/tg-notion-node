@@ -106,6 +106,51 @@ const server = http.createServer((req, res) => {
         return;
     }
 
+        // API: GET /tasks?user_id=...
+    if (pathname === '/tasks' && req.method === 'GET') {
+        const userId = parseInt(parsedUrl.query.user_id || '0');
+        const tasks = db.prepare('SELECT id, title, is_done, created_at FROM tasks WHERE user_id = ? ORDER BY created_at DESC').all(userId);
+        res.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
+        res.end(JSON.stringify({ tasks }));
+        return;
+    }
+
+    // API: POST /tasks
+    if (pathname === '/tasks' && req.method === 'POST') {
+        let body = '';
+        req.on('data', chunk => body += chunk);
+        req.on('end', () => {
+            const { user_id, title } = JSON.parse(body);
+            const result = db.prepare('INSERT INTO tasks (user_id, title) VALUES (?, ?)').run(user_id, title);
+            res.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
+            res.end(JSON.stringify({ ok: true, id: result.lastInsertRowid }));
+        });
+        return;
+    }
+
+    // API: PUT /tasks (toggle done)
+    if (pathname === '/tasks' && req.method === 'PUT') {
+        let body = '';
+        req.on('data', chunk => body += chunk);
+        req.on('end', () => {
+            const { id, is_done } = JSON.parse(body);
+            db.prepare('UPDATE tasks SET is_done = ? WHERE id = ?').run(is_done ? 1 : 0, id);
+            res.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
+            res.end(JSON.stringify({ ok: true }));
+        });
+        return;
+    }
+
+    // API: DELETE /tasks?id=...&user_id=...
+    if (pathname === '/tasks' && req.method === 'DELETE') {
+        const id = parseInt(parsedUrl.query.id || '0');
+        const userId = parseInt(parsedUrl.query.user_id || '0');
+        db.prepare('DELETE FROM tasks WHERE id = ? AND user_id = ?').run(id, userId);
+        res.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
+        res.end(JSON.stringify({ ok: true }));
+        return;
+    }
+
     // Статика Mini App
     let filePath = pathname === '/' ? '/index.html' : pathname;
     const fullPath = path.join(__dirname, 'public', filePath);

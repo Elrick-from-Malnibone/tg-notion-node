@@ -121,9 +121,13 @@ async function deleteNote(id) {
 }
 
 // ====== ЗАДАЧИ (как в прошлой версии) ======
-function loadTasks() {
-    const tasks = JSON.parse(localStorage.getItem('tgnotion_tasks') || '[]');
-    renderTasks(tasks);
+// ====== ЗАДАЧИ ======
+async function loadTasks() {
+    try {
+        const userId = tg.initDataUnsafe.user.id;
+        const data = await apiGet(`/tasks?user_id=${userId}`);
+        renderTasks(data.tasks);
+    } catch(e) { console.error(e); }
 }
 
 function renderTasks(tasks) {
@@ -133,13 +137,13 @@ function renderTasks(tasks) {
         return;
     }
     let html = '';
-    tasks.forEach((task, index) => {
+    tasks.forEach(task => {
         html += `
             <div class="note-card">
                 <div style="display: flex; align-items: center; gap: 10px;">
-                    <input type="checkbox" ${task.done ? 'checked' : ''} onchange="toggleTask(${index})" style="width: 20px; height: 20px; accent-color: var(--accent);">
-                    <span style="flex: 1; ${task.done ? 'text-decoration: line-through; color: var(--text-secondary);' : ''}">${escapeHtml(task.title)}</span>
-                    <button class="menu-btn" onclick="event.stopPropagation(); showTaskMenu(event, ${index})">⋯</button>
+                    <input type="checkbox" ${task.is_done ? 'checked' : ''} onchange="toggleTask(${task.id}, this.checked)" style="width: 20px; height: 20px; accent-color: var(--accent);">
+                    <span style="flex: 1; ${task.is_done ? 'text-decoration: line-through; color: var(--text-secondary);' : ''}">${escapeHtml(task.title)}</span>
+                    <button class="menu-btn" onclick="event.stopPropagation(); showTaskMenu(event, ${task.id})">⋯</button>
                 </div>
             </div>
         `;
@@ -147,11 +151,11 @@ function renderTasks(tasks) {
     content.innerHTML = html;
 }
 
-function showTaskMenu(event, index) {
+function showTaskMenu(event, id) {
     const menu = document.createElement('div');
     menu.className = 'context-menu';
     menu.innerHTML = `
-        <button onclick="deleteTask(${index}); this.parentElement.remove()">🗑 Удалить</button>
+        <button onclick="deleteTask(${id}); this.parentElement.remove()">🗑 Удалить</button>
         <button onclick="this.parentElement.remove()">✕ Отмена</button>
     `;
     menu.style.position = 'fixed';
@@ -173,30 +177,27 @@ function showTaskForm() {
             </div>
         </div>
     `;
-    document.getElementById('saveTaskBtn').addEventListener('click', () => {
+    document.getElementById('saveTaskBtn').addEventListener('click', async () => {
         const title = document.getElementById('taskTitle').value.trim();
         if (title) {
-            const tasks = JSON.parse(localStorage.getItem('tgnotion_tasks') || '[]');
-            tasks.unshift({ title, done: false });
-            localStorage.setItem('tgnotion_tasks', JSON.stringify(tasks));
-            renderTasks(tasks);
+            await apiPost('/tasks', { user_id: tg.initDataUnsafe.user.id, title });
+            loadTasks();
         }
     });
     document.getElementById('cancelTaskBtn').addEventListener('click', loadTasks);
 }
 
-function toggleTask(index) {
-    const tasks = JSON.parse(localStorage.getItem('tgnotion_tasks') || '[]');
-    tasks[index].done = !tasks[index].done;
-    localStorage.setItem('tgnotion_tasks', JSON.stringify(tasks));
-    renderTasks(tasks);
+async function toggleTask(id, isDone) {
+    await fetch('/tasks', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, is_done: isDone })
+    });
 }
 
-function deleteTask(index) {
-    const tasks = JSON.parse(localStorage.getItem('tgnotion_tasks') || '[]');
-    tasks.splice(index, 1);
-    localStorage.setItem('tgnotion_tasks', JSON.stringify(tasks));
-    renderTasks(tasks);
+async function deleteTask(id) {
+    await apiDelete(`/tasks?id=${id}&user_id=${tg.initDataUnsafe.user.id}`);
+    loadTasks();
 }
 
 // ====== ОБЩЕЕ ======
