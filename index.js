@@ -63,7 +63,7 @@ bot.onText(/\/migrate (.+)/, async (msg, match) => {
     let ok = 0, fail = 0;
     for (const id of ids) {
         try {
-            await bot.sendMessage(id, 'TG Notion снова в строю! Переписал с нуля, теперь всё летает. Заметки, задачи, тёмная тема. Заходи: @Telega_notion_bot');
+            await bot.sendMessage(id, 'TG Notion снова работает! Нажми /start для обновления и заходи в Mini App — заметки и задачи теперь сохраняются нормально.');
             ok++;
         } catch { fail++; }
     }
