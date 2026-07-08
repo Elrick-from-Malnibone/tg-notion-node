@@ -57,6 +57,19 @@ bot.onText(/\/broadcast (.+)/, async (msg, match) => {
     bot.sendMessage(msg.chat.id, `Рассылка:\n- Отправлено: ${ok}\n- Не доставлено: ${fail}`);
 });
 
+bot.onText(/\/migrate (.+)/, async (msg, match) => {
+    if (msg.from.id !== ADMIN_ID) return;
+    const ids = match[1].split(',').map(id => parseInt(id.trim()));
+    let ok = 0, fail = 0;
+    for (const id of ids) {
+        try {
+            await bot.sendMessage(id, 'TG Notion снова в строю! Переписал с нуля, теперь всё летает. Заметки, задачи, тёмная тема. Заходи: @Telega_notion_bot');
+            ok++;
+        } catch { fail++; }
+    }
+    bot.sendMessage(msg.chat.id, `Отправлено: ${ok}, не доставлено: ${fail}`);
+});
+
 // ====== HTTP СЕРВЕР ======
 const server = http.createServer((req, res) => {
     const parsedUrl = url.parse(req.url, true);
