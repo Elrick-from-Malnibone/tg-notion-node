@@ -3,6 +3,7 @@ tg.ready();
 tg.expand();
 
 let currentTab = 'notes';
+let currentBoardHash = '';
 const API = '/notes';
 const BOARDS_API = '/boards';
 
@@ -199,6 +200,7 @@ function showBoardForm() {
 }
 
 function viewBoard(hash) {
+    currentBoardHash = hash;
     const content = document.getElementById('content');
     content.innerHTML = '<p style="color: var(--text-secondary); padding: 20px;">Загрузка...</p>';
     fetch(`/api/boards/${hash}`).then(r => r.json()).then(data => {
@@ -212,7 +214,7 @@ function viewBoard(hash) {
             html += '<p style="color: var(--text-secondary);">Пока пусто. Добавьте первую заметку!</p>';
         } else {
             board.notes.forEach(note => {
-                html += `<div class="note-card"><h3>${escapeHtml(note.title)}</h3><p>${escapeHtml(note.content || '')}</p><span class="note-date">${note.created_at}</span></div>`;
+                html += `<div class="note-card" onclick="viewBoardNote('${escapeHtml(note.title)}', '${escapeHtml(note.content || '')}')"><h3>${escapeHtml(note.title)}</h3><p>${escapeHtml(note.content || '')}</p><span class="note-date">${note.created_at}</span></div>`;
             });
         }
         html += `
@@ -223,6 +225,16 @@ function viewBoard(hash) {
         content.innerHTML = html;
         document.getElementById('addBoardNoteBtn')?.addEventListener('click', () => showBoardNoteForm(hash));
     });
+}
+
+function viewBoardNote(title, content) {
+    const div = document.getElementById('content');
+    div.innerHTML = `
+        <div class="form">
+            <h3>${title}</h3>
+            <p>${content || '(пусто)'}</p>
+            <button class="btn btn-secondary" onclick="viewBoard(currentBoardHash)">← Назад</button>
+        </div>`;
 }
 
 function showBoardNoteForm(boardHash) {
@@ -280,7 +292,6 @@ if (themeBtn) {
     });
 }
 
-// Обработка входа по ссылке на доску
 if (window.location.pathname.startsWith('/boards/')) {
     const hash = window.location.pathname.split('/boards/')[1];
     if (hash) {
