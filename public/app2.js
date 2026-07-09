@@ -227,6 +227,7 @@ function viewBoard(hash) {
 
 function showBoardNoteForm(boardHash) {
     const content = document.getElementById('content');
+    const userId = tg.initDataUnsafe?.user?.id || 0;
     content.innerHTML = `
         <div class="form">
             <input type="text" id="boardNoteTitle" placeholder="Заголовок" class="input">
@@ -240,7 +241,7 @@ function showBoardNoteForm(boardHash) {
         const title = document.getElementById('boardNoteTitle').value.trim();
         const content = document.getElementById('boardNoteContent').value.trim();
         if (title) {
-            await apiPost(`/api/boards/${boardHash}/notes`, { author_id: tg.initDataUnsafe.user.id, title, content });
+            await apiPost(`/api/boards/${boardHash}/notes`, { author_id: userId, title, content });
             viewBoard(boardHash);
         }
     });
