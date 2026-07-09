@@ -4,6 +4,7 @@ const fs = require('fs');
 const http = require('http');
 const url = require('url');
 const db = require('./db');
+const boardsApi = require('./api/boards');
 
 const TOKEN = process.env.BOT_TOKEN || 'твой_токен';
 const ADMIN_ID = parseInt(process.env.ADMIN_ID || '0');
@@ -161,6 +162,61 @@ const server = http.createServer((req, res) => {
         db.prepare('DELETE FROM tasks WHERE id = ? AND user_id = ?').run(id, userId);
         res.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
         res.end(JSON.stringify({ ok: true }));
+        return;
+    }
+
+        // API: POST /boards
+    if (pathname === '/boards' && req.method === 'POST') {
+        let body = '';
+        req.on('data', chunk => body += chunk);
+        req.on('end', () => {
+            const { user_id, title } = JSON.parse(body);
+            const board = boardsApi.createBoard(user_id, title);
+            res.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
+            res.end(JSON.stringify({ ok: true, hash: board.hash }));
+        });
+        return;
+    }
+
+    // API: GET /boards/:hash
+    const boardMatch = pathname.match(/^\/boards\/([a-f0-9]+)$/);
+    if (boardMatch && req.method === 'GET') {
+        const board = boardsApi.getBoard(boardMatch[1]);
+        if (!board) {
+            res.writeHead(404, { 'Access-Control-Allow-Origin': '*' });
+            res.end(JSON.stringify({ error: 'Board not found' }));
+        } else {
+            res.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
+            res.end(JSON.stringify({ board }));
+        }
+        return;
+    }
+
+    // API: POST /boards/:hash/notes
+    const boardNotesMatch = pathname.match(/^\/boards\/([a-f0-9]+)\/notes$/);
+    if (boardNotesMatch && req.method === 'POST') {
+        let body = '';
+        req.on('data', chunk => body += chunk);
+        req.on('end', () => {
+            const { author_id, title, content } = JSON.parse(body);
+            const note = boardsApi.addNote(boardNotesMatch[1], author_id, title, content);
+            if (!note) {
+                res.writeHead(404, { 'Access-Control-Allow-Origin': '*' });
+                res.end(JSON.stringify({ error: 'Board not found' }));
+            } else {
+                res.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
+                res.end(JSON.stringify({ ok: true, note }));
+            }
+        });
+        return;
+    }
+
+    // API: DELETE /boards/:hash/notes/:id
+    const boardDeleteMatch = pathname.match(/^\/boards\/([a-f0-9]+)\/notes\/(\d+)$/);
+    if (boardDeleteMatch && req.method === 'DELETE') {
+        const ok = boardsApi.deleteNote(boardDeleteMatch[1], parseInt(boardDeleteMatch[2]));
+        res.writeHead(ok ? 200 : 404, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
+        res.end(JSON.stringify({ ok }));
         return;
     }
 

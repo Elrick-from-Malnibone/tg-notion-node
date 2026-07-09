@@ -44,6 +44,24 @@ db.exec(`
         timestamp TEXT DEFAULT (datetime('now')),
         FOREIGN KEY (user_id) REFERENCES users(id)
     );
+
+        CREATE TABLE IF NOT EXISTS boards (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        hash TEXT UNIQUE NOT NULL,
+        title TEXT NOT NULL,
+        created_by INTEGER,
+        created_at TEXT DEFAULT (datetime('now'))
+    );
+
+    CREATE TABLE IF NOT EXISTS board_notes (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        board_id INTEGER NOT NULL,
+        author_id INTEGER,
+        title TEXT,
+        content TEXT DEFAULT '',
+        created_at TEXT DEFAULT (datetime('now')),
+        FOREIGN KEY (board_id) REFERENCES boards(id)
+    );
 `);
 
 module.exports = db;
