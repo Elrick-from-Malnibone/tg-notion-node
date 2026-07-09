@@ -214,14 +214,10 @@ function showBoardForm() {
     document.getElementById('cancelBoardBtn').addEventListener('click', loadBoards);
 }
 
+javascript
 function shareBoard(link) {
-    if (tg.initDataUnsafe?.user?.id) {
-        tg.sendData(JSON.stringify({ action: 'share_board', link }));
-    }
-    // Копируем ссылку в буфер
-    navigator.clipboard.writeText(link).then(() => {
-        tg.showAlert('Ссылка скопирована! Отправьте её в чат.');
-    });
+    const text = 'Заходи в доску';
+    tg.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent(text)}`);
 }
 
 function viewBoard(hash) {
