@@ -201,7 +201,7 @@ function showBoardForm() {
 function viewBoard(hash) {
     const content = document.getElementById('content');
     content.innerHTML = '<p style="color: var(--text-secondary); padding: 20px;">Загрузка...</p>';
-    fetch(`/boards/${hash}`).then(r => r.json()).then(data => {
+    fetch(`/api/boards/${hash}`).then(r => r.json()).then(data => {
         if (data.error) {
             content.innerHTML = `<p style="color: var(--text-secondary); padding: 20px;">Доска не найдена</p>`;
             return;
@@ -240,7 +240,7 @@ function showBoardNoteForm(boardHash) {
         const title = document.getElementById('boardNoteTitle').value.trim();
         const content = document.getElementById('boardNoteContent').value.trim();
         if (title) {
-            await apiPost(`/boards/${boardHash}/notes`, { author_id: tg.initDataUnsafe.user.id, title, content });
+            await apiPost(`/api/boards/${boardHash}/notes`, { author_id: tg.initDataUnsafe.user.id, title, content });
             viewBoard(boardHash);
         }
     });

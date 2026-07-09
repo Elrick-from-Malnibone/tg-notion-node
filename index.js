@@ -178,10 +178,16 @@ const server = http.createServer((req, res) => {
         return;
     }
 
-    // API: GET /boards/:hash
-    const boardMatch = pathname.match(/^\/boards\/([a-f0-9]+)$/);
-    if (boardMatch && req.method === 'GET') {
-        const board = boardsApi.getBoard(boardMatch[1]);
+    // Страница доски (для браузера) — отдаём index.html
+    const boardPageMatch = pathname.match(/^\/boards\/([a-f0-9]+)$/);
+    if (boardPageMatch && req.method === 'GET') {
+        req.url = '/index.html';
+    }
+
+    // API доски — отдаём JSON
+    const boardApiMatch = pathname.match(/^\/api\/boards\/([a-f0-9]+)$/);
+    if (boardApiMatch && req.method === 'GET') {
+        const board = boardsApi.getBoard(boardApiMatch[1]);
         if (!board) {
             res.writeHead(404, { 'Access-Control-Allow-Origin': '*' });
             res.end(JSON.stringify({ error: 'Board not found' }));
@@ -192,8 +198,8 @@ const server = http.createServer((req, res) => {
         return;
     }
 
-    // API: POST /boards/:hash/notes
-    const boardNotesMatch = pathname.match(/^\/boards\/([a-f0-9]+)\/notes$/);
+    // API: POST /api/boards/:hash/notes
+    const boardNotesMatch = pathname.match(/^\/api\/boards\/([a-f0-9]+)\/notes$/);
     if (boardNotesMatch && req.method === 'POST') {
         let body = '';
         req.on('data', chunk => body += chunk);
@@ -211,8 +217,8 @@ const server = http.createServer((req, res) => {
         return;
     }
 
-    // API: DELETE /boards/:hash/notes/:id
-    const boardDeleteMatch = pathname.match(/^\/boards\/([a-f0-9]+)\/notes\/(\d+)$/);
+    // API: DELETE /api/boards/:hash/notes/:id
+    const boardDeleteMatch = pathname.match(/^\/api\/boards\/([a-f0-9]+)\/notes\/(\d+)$/);
     if (boardDeleteMatch && req.method === 'DELETE') {
         const ok = boardsApi.deleteNote(boardDeleteMatch[1], parseInt(boardDeleteMatch[2]));
         res.writeHead(ok ? 200 : 404, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
