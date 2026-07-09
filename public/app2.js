@@ -5,7 +5,7 @@ tg.expand();
 let currentTab = 'notes';
 let currentBoardHash = '';
 const API = '/notes';
-const BOARDS_API = '/boards';
+const BOARDS_API = '/api/boards';
 
 // ====== ТЕМА ======
 let currentTheme = localStorage.getItem('tgnotion_theme') || 'dark';
@@ -161,12 +161,26 @@ async function deleteTask(id) {
 // ====== ДОСКИ ======
 async function loadBoards() {
     const content = document.getElementById('content');
-    content.innerHTML = `
-        <div style="text-align: center; padding: 20px;">
-            <p style="color: var(--text-secondary); margin-bottom: 15px;">Создайте общую доску и поделитесь ссылкой</p>
-            <button class="btn btn-primary" onclick="showBoardForm()">📋 Новая доска</button>
-            <div id="boardList" style="margin-top: 20px; text-align: left;"></div>
-        </div>`;
+    content.innerHTML = '<p style="color: var(--text-secondary); padding: 20px;">Загрузка...</p>';
+    try {
+        const userId = tg.initDataUnsafe?.user?.id || 0;
+        const data = await apiGet(`/api/boards?user_id=${userId}`);
+        let html = `
+            <div style="text-align: center; padding: 20px;">
+                <button class="btn btn-primary" onclick="showBoardForm()">📋 Новая доска</button>
+                <div id="boardList" style="margin-top: 20px; text-align: left;">`;
+        if (!data.boards || data.boards.length === 0) {
+            html += '<p style="color: var(--text-secondary); text-align: center;">Нет досок</p>';
+        } else {
+            data.boards.forEach(board => {
+                html += `<div class="note-card" onclick="viewBoard('${board.hash}')"><h3>${escapeHtml(board.title)}</h3><span class="note-date">${board.created_at}</span></div>`;
+            });
+        }
+        html += `</div></div>`;
+        content.innerHTML = html;
+    } catch(e) {
+        content.innerHTML = '<p style="color: var(--text-secondary); padding: 20px;">Ошибка загрузки</p>';
+    }
 }
 
 function showBoardForm() {

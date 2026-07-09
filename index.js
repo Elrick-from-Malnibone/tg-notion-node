@@ -164,9 +164,19 @@ const server = http.createServer((req, res) => {
         res.end(JSON.stringify({ ok: true }));
         return;
     }
+    
+        // API: GET /boards?user_id=...
+    if (pathname === '/api/boards' && req.method === 'GET') {
+        const query = require('url').parse(req.url, true).query;
+        const userId = parseInt(query.user_id || '0');
+        const boards = db.prepare('SELECT * FROM boards WHERE created_by = ? ORDER BY created_at DESC').all(userId);
+        res.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
+        res.end(JSON.stringify({ boards }));
+        return;
+    }
 
         // API: POST /boards
-    if (pathname === '/boards' && req.method === 'POST') {
+    if (pathname === '/api/boards' && req.method === 'POST') {
         let body = '';
         req.on('data', chunk => body += chunk);
         req.on('end', () => {
