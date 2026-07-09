@@ -214,7 +214,6 @@ function showBoardForm() {
     document.getElementById('cancelBoardBtn').addEventListener('click', loadBoards);
 }
 
-javascript
 function shareBoard(link) {
     const text = 'Заходи в доску';
     tg.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent(text)}`);
