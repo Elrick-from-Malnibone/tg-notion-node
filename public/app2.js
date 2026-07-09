@@ -205,12 +205,23 @@ function showBoardForm() {
                         <p style="word-break: break-all; color: var(--accent);">${link}</p>
                         <p style="color: var(--text-secondary);">Отправьте эту ссылку кому угодно — у кого она есть, тот может добавлять заметки</p>
                         <button class="btn btn-primary" onclick="tg.openLink('${link}')">🔗 Открыть</button>
+                        <button class="btn btn-primary" onclick="shareBoard('${link}')">📤 Поделиться</button>
                         <button class="btn btn-secondary" onclick="loadBoards()">← Назад</button>
                     </div>`;
             }
         }
     });
     document.getElementById('cancelBoardBtn').addEventListener('click', loadBoards);
+}
+
+function shareBoard(link) {
+    if (tg.initDataUnsafe?.user?.id) {
+        tg.sendData(JSON.stringify({ action: 'share_board', link }));
+    }
+    // Копируем ссылку в буфер
+    navigator.clipboard.writeText(link).then(() => {
+        tg.showAlert('Ссылка скопирована! Отправьте её в чат.');
+    });
 }
 
 function viewBoard(hash) {
