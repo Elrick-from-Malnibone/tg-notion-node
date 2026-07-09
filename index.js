@@ -178,10 +178,20 @@ const server = http.createServer((req, res) => {
         return;
     }
 
-    // Страница доски (для браузера) — отдаём index.html
+    // Страница доски — отдаём index.html
     const boardPageMatch = pathname.match(/^\/boards\/([a-f0-9]+)$/);
     if (boardPageMatch && req.method === 'GET') {
-        req.url = '/index.html';
+        const indexPath = path.join(__dirname, 'public', 'index.html');
+        fs.readFile(indexPath, (err, data) => {
+            if (err) {
+                res.writeHead(500);
+                res.end('Error loading page');
+            } else {
+                res.writeHead(200, { 'Content-Type': 'text/html' });
+                res.end(data);
+            }
+        });
+        return;
     }
 
     // API доски — отдаём JSON
