@@ -242,13 +242,14 @@ function viewBoard(hash) {
             html += '<p style="color: var(--text-secondary);">Пока пусто. Добавьте первую заметку!</p>';
         } else {
             board.notes.forEach(note => {
+                const author = note.author_username ? `@${note.author_username}` : 'гость';
                 html += `<div class="note-card">
                     <div class="note-header">
                         <h3 onclick="viewBoardNote('${escapeHtml(note.title)}', '${escapeHtml(note.content || '')}')">${escapeHtml(note.title)}</h3>
                         <button class="menu-btn" onclick="event.stopPropagation(); showBoardNoteMenu(event, '${board.hash}', ${note.id})">⋯</button>
                     </div>
                     <p>${escapeHtml(note.content || '')}</p>
-                    <span class="note-date">${note.created_at}</span>
+                    <span class="note-date">${note.created_at} — ${author}</span>
                 </div>`;
             });
         }
