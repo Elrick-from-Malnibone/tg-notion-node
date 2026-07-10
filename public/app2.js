@@ -229,13 +229,20 @@ function viewBoard(hash) {
             return;
         }
         const board = data.board;
-        let html = `<h3>${escapeHtml(board.title)}</h3>`;
+        let html = `<div class="note-header"><h3>${escapeHtml(board.title)}</h3><button class="menu-btn" onclick="event.stopPropagation(); showBoardMenu(event, '${board.hash}')">⋯</button></div>`;
         if (!board.notes || board.notes.length === 0) {
             html += '<p style="color: var(--text-secondary);">Пока пусто. Добавьте первую заметку!</p>';
         } else {
             board.notes.forEach(note => {
-                html += `<div class="note-card" onclick="viewBoardNote('${escapeHtml(note.title)}', '${escapeHtml(note.content || '')}')"><h3>${escapeHtml(note.title)}</h3><p>${escapeHtml(note.content || '')}</p><span class="note-date">${note.created_at}</span></div>`;
-            });
+    html += `<div class="note-card">
+        <div class="note-header">
+            <h3 onclick="viewBoardNote('${escapeHtml(note.title)}', '${escapeHtml(note.content || '')}')">${escapeHtml(note.title)}</h3>
+            <button class="menu-btn" onclick="event.stopPropagation(); showBoardNoteMenu(event, '${board.hash}', ${note.id})">⋯</button>
+        </div>
+        <p>${escapeHtml(note.content || '')}</p>
+        <span class="note-date">${note.created_at}</span>
+    </div>`;
+});
         }
         html += `
             <div class="form-buttons" style="margin-top: 15px;">
@@ -255,6 +262,40 @@ function viewBoardNote(title, content) {
             <p>${content || '(пусто)'}</p>
             <button class="btn btn-secondary" onclick="viewBoard(currentBoardHash)">← Назад</button>
         </div>`;
+}
+
+function showBoardNoteMenu(event, boardHash, noteId) {
+    const menu = document.createElement('div');
+    menu.className = 'context-menu';
+    menu.innerHTML = `
+        <button onclick="deleteBoardNote('${boardHash}', ${noteId}); this.parentElement.remove()">🗑 Удалить</button>
+        <button onclick="this.parentElement.remove()">✕ Отмена</button>`;
+    menu.style.cssText = `position:fixed; top:${event.clientY}px; right:10px; z-index:1000;`;
+    document.body.appendChild(menu);
+    setTimeout(() => document.addEventListener('click', () => menu.remove(), { once: true }), 0);
+}
+
+async function deleteBoardNote(boardHash, noteId) {
+    await apiDelete(`/api/boards/${boardHash}/notes/${noteId}`);
+    viewBoard(boardHash);
+}
+
+function showBoardMenu(event, hash) {
+    const menu = document.createElement('div');
+    menu.className = 'context-menu';
+    menu.innerHTML = `
+        <button onclick="deleteBoard('${hash}'); this.parentElement.remove()">🗑 Удалить доску</button>
+        <button onclick="this.parentElement.remove()">✕ Отмена</button>`;
+    menu.style.cssText = `position:fixed; top:${event.clientY}px; right:10px; z-index:1000;`;
+    document.body.appendChild(menu);
+    setTimeout(() => document.addEventListener('click', () => menu.remove(), { once: true }), 0);
+}
+
+async function deleteBoard(hash) {
+    if (confirm('Удалить всю доску?')) {
+        await apiDelete(`/api/boards/${hash}`);
+        loadBoards();
+    }
 }
 
 function showBoardNoteForm(boardHash) {

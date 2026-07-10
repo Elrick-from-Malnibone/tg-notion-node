@@ -239,11 +239,25 @@ const server = http.createServer((req, res) => {
     }
 
     // API: DELETE /api/boards/:hash/notes/:id
-    const boardDeleteMatch = pathname.match(/^\/api\/boards\/([a-f0-9]+)\/notes\/(\d+)$/);
-    if (boardDeleteMatch && req.method === 'DELETE') {
-        const ok = boardsApi.deleteNote(boardDeleteMatch[1], parseInt(boardDeleteMatch[2]));
+    const boardNoteDeleteMatch = pathname.match(/^\/api\/boards\/([a-f0-9]+)\/notes\/(\d+)$/);
+    if (boardNoteDeleteMatch && req.method === 'DELETE') {
+        const ok = boardsApi.deleteNote(boardNoteDeleteMatch[1], parseInt(boardNoteDeleteMatch[2]));
         res.writeHead(ok ? 200 : 404, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
         res.end(JSON.stringify({ ok }));
+        return;
+    }
+
+    // API: DELETE /api/boards/:hash
+    const boardDeleteMatch = pathname.match(/^\/api\/boards\/([a-f0-9]+)$/);
+    if (boardDeleteMatch && req.method === 'DELETE') {
+        const hash = boardDeleteMatch[1];
+        const board = db.prepare('SELECT id FROM boards WHERE hash = ?').get(hash);
+        if (board) {
+            db.prepare('DELETE FROM board_notes WHERE board_id = ?').run(board.id);
+            db.prepare('DELETE FROM boards WHERE id = ?').run(board.id);
+        }
+        res.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
+        res.end(JSON.stringify({ ok: true }));
         return;
     }
 
