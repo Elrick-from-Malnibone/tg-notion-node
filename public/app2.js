@@ -211,7 +211,7 @@ function showBoardForm() {
                         <p style="word-break: break-all; color: var(--accent);">${link}</p>
                         <p style="color: var(--text-secondary);">Отправьте эту ссылку кому угодно — у кого она есть, тот может добавлять заметки</p>
                         <button class="btn btn-primary" onclick="tg.openLink('${link}')">🔗 Открыть</button>
-                        <button class="btn btn-primary" onclick="shareBoard('${link}')">📤 Поделиться</button>
+                        <button class="btn btn-primary" onclick="shareBoard('${link}')">↪ Поделиться</button>
                         <button class="btn btn-secondary" onclick="loadBoards()">← Назад</button>
                     </div>`;
             }
