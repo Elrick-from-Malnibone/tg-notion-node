@@ -173,7 +173,13 @@ async function loadBoards() {
             html += '<p style="color: var(--text-secondary); text-align: center;">Нет досок</p>';
         } else {
             data.boards.forEach(board => {
-                html += `<div class="note-card" onclick="viewBoard('${board.hash}')"><h3>${escapeHtml(board.title)}</h3><span class="note-date">${board.created_at}</span></div>`;
+                html += `<div class="note-card">
+                    <div class="note-header">
+                        <h3 onclick="viewBoard('${board.hash}')">${escapeHtml(board.title)}</h3>
+                        <button class="menu-btn" onclick="event.stopPropagation(); showBoardMenu(event, '${board.hash}')">⋯</button>
+                    </div>
+                    <span class="note-date">${board.created_at}</span>
+                </div>`;
             });
         }
         html += `</div></div>`;
@@ -229,7 +235,7 @@ function viewBoard(hash) {
             return;
         }
         const board = data.board;
-        let html = `<div class="note-header"><h3>${escapeHtml(board.title)}</h3><button class="menu-btn" onclick="event.stopPropagation(); showBoardMenu(event, '${board.hash}')">⋯</button></div>`;
+        let html = `<h3>${escapeHtml(board.title)}</h3>`;
         if (!board.notes || board.notes.length === 0) {
             html += '<p style="color: var(--text-secondary);">Пока пусто. Добавьте первую заметку!</p>';
         } else {
