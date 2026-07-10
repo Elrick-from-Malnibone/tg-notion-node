@@ -172,8 +172,8 @@ async function loadBoards() {
         if (!data.boards || data.boards.length === 0) {
             html += '<p style="color: var(--text-secondary); text-align: center;">Нет досок</p>';
         } else {
-            data.boards.forEach(board => {
-                html += `<div class="note-card">
+                data.boards.forEach(board => {
+                html += `<div class="note-card" onclick="viewBoard('${board.hash}')">
                     <div class="note-header">
                         <h3>${escapeHtml(board.title)}</h3>
                         <button class="menu-btn" onclick="event.stopPropagation(); showBoardMenu(event, '${board.hash}')">⋯</button>
