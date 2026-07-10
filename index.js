@@ -33,9 +33,10 @@ bot.onText(/\/stats/, async (msg) => {
     const week = db.prepare("SELECT COUNT(*) as c FROM users WHERE created_at >= datetime('now', '-7 days')").get().c;
     const notes = db.prepare('SELECT COUNT(*) as c FROM notes').get().c;
     const tasks = db.prepare('SELECT COUNT(*) as c FROM tasks').get().c;
+    const boards = db.prepare('SELECT COUNT(*) as c FROM boards').get().c;
     const last = db.prepare("SELECT username, created_at FROM users ORDER BY created_at DESC LIMIT 5").all()
         .map(u => `@${u.username || 'без'} — ${u.created_at}`).join('\n') || 'никого';
-    bot.sendMessage(msg.chat.id, `Юзеры:\n- Всего: ${total}\n- Сегодня: ${today}\n- Неделя: ${week}\n\nКонтент:\n- Заметок: ${notes}\n- Задач: ${tasks}\n\nПоследние 5:\n${last}`);
+    bot.sendMessage(msg.chat.id, `Юзеры:\n- Всего: ${total}\n- Сегодня: ${today}\n- Неделя: ${week}\n\nКонтент:\n- Заметок: ${notes}\n- Задач: ${tasks}\n- Досок: ${boards}\n\nПоследние 5:\n${last}`);
 });
 
 bot.onText(/\/active/, async (msg) => {
