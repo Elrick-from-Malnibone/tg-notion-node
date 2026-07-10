@@ -14,21 +14,7 @@ const bot = new TelegramBot(TOKEN, { webhook: { port: PORT } });
 bot.setWebHook(`https://tgnotion.bothost.tech/bot${TOKEN}`);
 
 // ====== КОМАНДЫ ======
-bot.onText(/\/start (.+)/, async (msg, match) => {
-    const payload = match[1];
-    if (payload.startsWith('boards_')) {
-        const hash = payload.split('boards_')[1];
-        await bot.sendMessage(msg.chat.id, `Открываю доску...`, {
-            reply_markup: {
-                inline_keyboard: [[{
-                    text: '📋 Открыть доску',
-                    web_app: { url: `https://tgnotion.bothost.tech/boards/${hash}` }
-                }]]
-            }
-        });
-        return;
-    }
-    // Обычный /start
+bot.onText(/\/start/, async (msg) => {
     const userId = msg.from.id;
     const username = msg.from.username;
     const user = db.prepare('SELECT id FROM users WHERE id = ?').get(userId);
