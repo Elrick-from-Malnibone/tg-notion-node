@@ -256,6 +256,7 @@ function viewBoard(hash) {
         html += `
             <div class="form-buttons" style="margin-top: 15px;">
                 <button class="btn btn-primary" id="addBoardNoteBtn">+ Заметка</button>
+                <button class="btn btn-primary" id="shareBoardBtn">↪  Поделиться</button>
                 <button class="btn btn-secondary" onclick="loadBoards()">← Назад</button>
             </div>`;
         content.innerHTML = html;
