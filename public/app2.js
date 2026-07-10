@@ -175,7 +175,7 @@ async function loadBoards() {
             data.boards.forEach(board => {
                 html += `<div class="note-card">
                     <div class="note-header">
-                        <h3 onclick="viewBoard('${board.hash}')">${escapeHtml(board.title)}</h3>
+                        <h3>${escapeHtml(board.title)}</h3>
                         <button class="menu-btn" onclick="event.stopPropagation(); showBoardMenu(event, '${board.hash}')">⋯</button>
                     </div>
                     <span class="note-date">${board.created_at}</span>
@@ -240,15 +240,15 @@ function viewBoard(hash) {
             html += '<p style="color: var(--text-secondary);">Пока пусто. Добавьте первую заметку!</p>';
         } else {
             board.notes.forEach(note => {
-    html += `<div class="note-card">
-        <div class="note-header">
-            <h3 onclick="viewBoardNote('${escapeHtml(note.title)}', '${escapeHtml(note.content || '')}')">${escapeHtml(note.title)}</h3>
-            <button class="menu-btn" onclick="event.stopPropagation(); showBoardNoteMenu(event, '${board.hash}', ${note.id})">⋯</button>
-        </div>
-        <p>${escapeHtml(note.content || '')}</p>
-        <span class="note-date">${note.created_at}</span>
-    </div>`;
-});
+                html += `<div class="note-card">
+                    <div class="note-header">
+                        <h3 onclick="viewBoardNote('${escapeHtml(note.title)}', '${escapeHtml(note.content || '')}')">${escapeHtml(note.title)}</h3>
+                        <button class="menu-btn" onclick="event.stopPropagation(); showBoardNoteMenu(event, '${board.hash}', ${note.id})">⋯</button>
+                    </div>
+                    <p>${escapeHtml(note.content || '')}</p>
+                    <span class="note-date">${note.created_at}</span>
+                </div>`;
+            });
         }
         html += `
             <div class="form-buttons" style="margin-top: 15px;">
