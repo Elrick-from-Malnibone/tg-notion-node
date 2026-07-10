@@ -204,7 +204,7 @@ function showBoardForm() {
         if (title) {
             const result = await apiPost(BOARDS_API, { user_id: tg.initDataUnsafe.user.id, title });
             if (result.ok) {
-                const link = `https://t.me/Telega_notion_bot/boards/${result.hash}`;
+                const link = `https://t.me/Telega_notion_bot?startapp=boards_${result.hash}`;
                 document.getElementById('content').innerHTML = `
                     <div class="form" style="text-align: center;">
                         <h3>✅ Доска создана!</h3>
@@ -222,8 +222,9 @@ function showBoardForm() {
 
 function shareBoard(link) {
     const text = 'Заходи в доску';
-    const shareLink = `https://t.me/Telega_notion_bot/boards/${link.split('/boards/')[1]}`;
-tg.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(shareLink)}&text=${encodeURIComponent(text)}`);
+    const hash = link.split('boards_')[1];
+    const shareLink = `https://t.me/Telega_notion_bot?startapp=boards_${hash}`;
+    tg.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(shareLink)}&text=${encodeURIComponent(text)}`);
 }
 
 function viewBoard(hash) {
