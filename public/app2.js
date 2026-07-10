@@ -361,17 +361,7 @@ if (themeBtn) {
     });
 }
 
-const startParam = tg.initDataUnsafe?.start_param || new URLSearchParams(location.search).get('tgWebAppStartParam');
-if (startParam && startParam.startsWith('boards_')) {
-    const hash = startParam.split('boards_')[1];
-    if (hash) {
-        currentTab = 'boards';
-        document.querySelectorAll('.tab[data-tab]').forEach(t => t.classList.remove('active'));
-        const boardsTab = document.querySelector('[data-tab="boards"]');
-        if (boardsTab) boardsTab.classList.add('active');
-        setTimeout(() => viewBoard(hash), 200);
-    }
-} else if (window.location.pathname.startsWith('/boards/')) {
+if (window.location.pathname.startsWith('/boards/')) {
     const hash = window.location.pathname.split('/boards/')[1];
     if (hash) {
         currentTab = 'boards';
