@@ -262,6 +262,11 @@ function viewBoard(hash) {
         content.innerHTML = html;
         document.getElementById('addBoardNoteBtn')?.addEventListener('click', () => showBoardNoteForm(hash));
     });
+
+       document.getElementById('shareBoardBtn')?.addEventListener('click', () => {
+        const link = `https://t.me/Telega_notion_bot?startapp=boards_${hash}`;
+        shareBoard(link);
+    });
 }
 
 function viewBoardNote(title, content) {
