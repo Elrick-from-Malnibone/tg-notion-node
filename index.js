@@ -438,4 +438,6 @@ bot.on('inline_query', async (query) => {
     }], { cache_time: 0, is_personal: true });
 });
 
+console.log('INLINE QUERY:', query.query);
+
 server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
