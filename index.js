@@ -402,4 +402,31 @@ const server = http.createServer((req, res) => {
 
 bot.setWebHook(`https://tgnotion.bothost.tech/bot${TOKEN}`);
 
+bot.on('inline_query', async (query) => {
+    const queryText = query.query;
+    if (queryText.startsWith('boards_')) {
+        const hash = queryText.split('boards_')[1];
+        const board = boardsApi.getBoard(hash);
+        if (!board) return;
+        const notesList = board.notes.slice(0, 5).map(n => `• ${n.title}`).join('\n') || 'Пока пусто';
+        await bot.answerInlineQuery(query.id, [{
+            type: 'article',
+            id: hash,
+            title: `📋 ${board.title}`,
+            description: notesList.substring(0, 50),
+            input_message_content: {
+                message_text: `📋 ${board.title}\n\n${notesList}`,
+                parse_mode: 'HTML'
+            },
+            reply_markup: {
+                inline_keyboard: [
+                    [{ text: '➕ Добавить', callback_data: `add_board_${hash}` }],
+                    [{ text: '📝 Открыть доску', web_app: { url: `https://tgnotion.bothost.tech/boards/${hash}` } }],
+                    [{ text: '🔄 Обновить', callback_data: `refresh_board_${hash}` }]
+                ]
+            }
+        }]);
+    }
+});
+
 server.listen(PORT, () => console.log(`Server running on port ${PORT}`));

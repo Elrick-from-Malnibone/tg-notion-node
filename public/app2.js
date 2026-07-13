@@ -208,10 +208,7 @@ function showBoardForm() {
                 document.getElementById('content').innerHTML = `
                     <div class="form" style="text-align: center;">
                         <h3>✅ Доска создана!</h3>
-                        <p style="word-break: break-all; color: var(--accent);">${link}</p>
-                        <p style="color: var(--text-secondary);">Отправьте эту ссылку кому угодно — у кого она есть, тот может добавлять заметки</p>
-                        <button class="btn btn-primary" onclick="tg.openLink('${link}')">🔗 Открыть</button>
-                        <button class="btn btn-primary" onclick="shareBoard('${link}')">↪ Поделиться</button>
+                        <button class="btn btn-primary" onclick="shareBoard('${result.hash}')">↪ Поделиться</button>
                         <button class="btn btn-secondary" onclick="loadBoards()">← Назад</button>
                     </div>`;
             }
@@ -220,11 +217,8 @@ function showBoardForm() {
     document.getElementById('cancelBoardBtn').addEventListener('click', loadBoards);
 }
 
-function shareBoard(link) {
-    const text = 'Заходи в доску';
-    const hash = link.split('boards_')[1];
-    const shareLink = `https://t.me/Telega_notion_bot?start=boards_${hash}`;
-    tg.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(shareLink)}&text=${encodeURIComponent(text)}`);
+function shareBoard(hash) {
+    tg.switchInlineQuery(`boards_${hash}`, ['groups', 'channels', 'users']);
 }
 
 function viewBoard(hash) {
@@ -267,8 +261,8 @@ function viewBoard(hash) {
             </div>`;
         content.innerHTML = html;
         document.getElementById('addBoardNoteBtn')?.addEventListener('click', () => showBoardNoteForm(hash));
-        document.getElementById('shareBoardBtn')?.addEventListener('click', () => {
-            shareBoard(`https://t.me/Telega_notion_bot?startapp=boards_${hash}`);
+                document.getElementById('shareBoardBtn')?.addEventListener('click', () => {
+            shareBoard(hash);
         });
     });
 }
