@@ -218,7 +218,9 @@ function showBoardForm() {
 }
 
 function shareBoard(hash) {
-    tg.switchInlineQuery(`board_${hash}`, ['groups', 'channels', 'users']);
+    const shareLink = `https://t.me/Telega_notion_bot?startapp=boards_${hash}`;
+    const text = 'Заходи в доску';
+    tg.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(shareLink)}&text=${encodeURIComponent(text)}`);
 }
 
 function viewBoard(hash) {
