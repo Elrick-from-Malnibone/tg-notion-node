@@ -246,7 +246,7 @@ function viewBoard(hash) {
                 html += `<div class="note-card">
                     <div class="note-header">
                         <h3 onclick="viewBoardNote('${escapeHtml(note.title)}', '${escapeHtml(note.content || '')}')">${escapeHtml(note.title)}</h3>
-                        <button class="menu-btn" onclick="event.stopPropagation(); showBoardNoteMenu(event, '${board.hash}', ${note.id})">⋯</button>
+                        <button class="menu-btn" onclick="event.stopPropagation(); showBoardNoteMenu(event, '${board.hash}', ${note.id}, '${escapeHtml(note.title)}', '${escapeHtml(note.content || '')}')">⋯</button>
                     </div>
                     <p>${escapeHtml(note.content || '')}</p>
                     <span class="note-date">${note.created_at} — ${author}</span>
@@ -278,12 +278,12 @@ function viewBoardNote(title, content) {
         </div>`;
 }
 
-function showBoardNoteMenu(event, boardHash, noteId) {
+function showBoardNoteMenu(event, boardHash, noteId, noteTitle, noteContent) {
     document.querySelector('.context-menu')?.remove();
     const menu = document.createElement('div');
     menu.className = 'context-menu';
     menu.innerHTML = `
-        <button onclick="editBoardNote('${boardHash}', ${noteId}); this.parentElement.remove()">✏️ Редактировать</button>
+        <button onclick="editBoardNote('${boardHash}', ${noteId}, '${noteTitle}', '${noteContent}'); this.parentElement.remove()">✏️ Редактировать</button>
         <button onclick="deleteBoardNote('${boardHash}', ${noteId}); this.parentElement.remove()">🗑 Удалить</button>
         <button onclick="this.parentElement.remove()">✕ Отмена</button>`;
     menu.style.cssText = `position:fixed; top:${event.clientY}px; right:10px; z-index:1000;`;
@@ -296,19 +296,31 @@ async function deleteBoardNote(boardHash, noteId) {
     viewBoard(boardHash);
 }
 
-async function editBoardNote(boardHash, noteId) {
-    const newTitle = prompt('Название:', '');
-    if (newTitle === null) return;
-    const newContent = prompt('Содержимое:', '');
-    if (newContent === null) return;
-    await fetch(`/api/boards/${boardHash}/notes/${noteId}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title: newTitle, content: newContent })
+async function editBoardNote(boardHash, noteId, oldTitle, oldContent) {
+    const content = document.getElementById('content');
+    content.innerHTML = `
+        <div class="form">
+            <input type="text" id="editNoteTitle" placeholder="Название" class="input" value="${oldTitle}">
+            <textarea id="editNoteContent" placeholder="Содержимое" class="textarea" rows="4">${oldContent || ''}</textarea>
+            <div class="form-buttons">
+                <button class="btn btn-primary" id="saveEditNoteBtn">Сохранить</button>
+                <button class="btn btn-secondary" id="cancelEditNoteBtn">Отмена</button>
+            </div>
+        </div>`;
+    document.getElementById('saveEditNoteBtn').addEventListener('click', async () => {
+        const newTitle = document.getElementById('editNoteTitle').value.trim();
+        const newContent = document.getElementById('editNoteContent').value.trim();
+        if (newTitle) {
+            await fetch(`/api/boards/${boardHash}/notes/${noteId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ title: newTitle, content: newContent })
+            });
+            viewBoard(boardHash);
+        }
     });
-    viewBoard(boardHash);
+    document.getElementById('cancelEditNoteBtn').addEventListener('click', () => viewBoard(boardHash));
 }
-
 function showBoardMenu(event, hash) {
     const menu = document.createElement('div');
     menu.className = 'context-menu';
