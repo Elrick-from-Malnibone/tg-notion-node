@@ -204,7 +204,7 @@ function showBoardForm() {
         if (title) {
             const result = await apiPost(BOARDS_API, { user_id: tg.initDataUnsafe.user.id, title });
             if (result.ok) {
-                const link = `https://t.me/Telega_notion_bot?startapp=boards_${result.hash}`;
+                const link = `https://t.me/Telega_notion_bot?start=boards_${result.hash}`;
                 document.getElementById('content').innerHTML = `
                     <div class="form" style="text-align: center;">
                         <h3>✅ Доска создана!</h3>
@@ -221,23 +221,10 @@ function showBoardForm() {
 }
 
 function shareBoard(link) {
+    const text = 'Заходи в доску';
     const hash = link.split('boards_')[1];
-    const chatId = tg.initDataUnsafe?.chat_instance || tg.initDataUnsafe?.user?.id;
-    if (!chatId) {
-        tg.showAlert('Не удалось определить чат');
-        return;
-    }
-    fetch('/api/boards/share', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ hash, chat_id: chatId })
-    }).then(r => r.json()).then(data => {
-        if (data.ok) {
-            tg.showAlert('Доска отправлена в чат!');
-        } else {
-            tg.showAlert('Ошибка');
-        }
-    });
+    const shareLink = `https://t.me/Telega_notion_bot?start=boards_${hash}`;
+    tg.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(shareLink)}&text=${encodeURIComponent(text)}`);
 }
 
 function viewBoard(hash) {
