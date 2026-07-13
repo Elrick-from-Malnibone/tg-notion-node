@@ -10,7 +10,7 @@ const TOKEN = process.env.BOT_TOKEN || 'твой_токен';
 const ADMIN_ID = parseInt(process.env.ADMIN_ID || '0');
 const PORT = process.env.PORT || 3000;
 
-const bot = new TelegramBot(TOKEN, { webhook: { port: PORT } });
+const bot = new TelegramBot(TOKEN);
 bot.setWebHook(`https://tgnotion.bothost.tech/bot${TOKEN}`);
 
 // ====== КОМАНДЫ ======
@@ -399,5 +399,7 @@ const server = http.createServer((req, res) => {
         }
     });
 });
+
+bot.setWebHook(`https://tgnotion.bothost.tech/bot${TOKEN}`);
 
 server.listen(PORT, () => console.log(`Server running on port ${PORT}`));

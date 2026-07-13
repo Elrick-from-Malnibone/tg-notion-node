@@ -220,11 +220,11 @@ function showBoardForm() {
     document.getElementById('cancelBoardBtn').addEventListener('click', loadBoards);
 }
 
-function shareBoard(hash) {
-    const boardUrl = `https://t.me/Telega_notion_bot?start=boards_${hash}`;
-    const shareText = `📋 Открыть доску`;
-    const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(boardUrl)}&text=${encodeURIComponent(shareText)}`;
-    tg.openTelegramLink(shareUrl);
+function shareBoard(link) {
+    const text = 'Заходи в доску';
+    const hash = link.split('boards_')[1];
+    const shareLink = `https://t.me/Telega_notion_bot?startapp=boards_${hash}`;
+    tg.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(shareLink)}&text=${encodeURIComponent(text)}`);
 }
 
 function viewBoard(hash) {
