@@ -237,19 +237,25 @@ function viewBoard(hash) {
             return;
         }
         const board = data.board;
-        let html = `<h3>${escapeHtml(board.title)}</h3>`;
+        const author = board.author_username ? `@${board.author_username}` : 'неизвестный';
+        let html = `
+            <div style="margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid var(--border);">
+                <h3>📋 ${escapeHtml(board.title)}</h3>
+                <p style="color: var(--text-secondary); font-size: 13px;">👤 Автор: ${author}</p>
+                <p style="color: var(--text-secondary); font-size: 13px;">👥 Общая доска</p>
+            </div>`;
         if (!board.notes || board.notes.length === 0) {
             html += '<p style="color: var(--text-secondary);">Пока пусто. Добавьте первую заметку!</p>';
         } else {
             board.notes.forEach(note => {
-                const author = note.author_username ? `@${note.author_username}` : 'гость';
+                const noteAuthor = note.author_username ? `@${note.author_username}` : 'гость';
                 html += `<div class="note-card">
                     <div class="note-header">
                         <h3 onclick="viewBoardNote('${escapeHtml(note.title)}', '${escapeHtml(note.content || '')}')">${escapeHtml(note.title)}</h3>
                         <button class="menu-btn" onclick="event.stopPropagation(); showBoardNoteMenu(event, '${board.hash}', ${note.id}, '${escapeHtml(note.title)}', '${escapeHtml(note.content || '')}')">⋯</button>
                     </div>
                     <p>${escapeHtml(note.content || '')}</p>
-                    <span class="note-date">${note.created_at} — ${author}</span>
+                    <span class="note-date">${note.created_at} — ${noteAuthor}</span>
                 </div>`;
             });
         }
@@ -262,10 +268,9 @@ function viewBoard(hash) {
         content.innerHTML = html;
         document.getElementById('addBoardNoteBtn')?.addEventListener('click', () => showBoardNoteForm(hash));
         document.getElementById('shareBoardBtn')?.addEventListener('click', () => {
-    shareBoard(`https://t.me/Telega_notion_bot?startapp=boards_${hash}`);
-});
+            shareBoard(`https://t.me/Telega_notion_bot?startapp=boards_${hash}`);
+        });
     });
-
 }
 
 function viewBoardNote(title, content) {

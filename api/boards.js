@@ -8,7 +8,7 @@ function createBoard(userId, title) {
 }
 
 function getBoard(hash) {
-    const board = db.prepare('SELECT * FROM boards WHERE hash = ?').get(hash);
+    const board = db.prepare('SELECT boards.*, users.username as author_username FROM boards LEFT JOIN users ON boards.created_by = users.id WHERE boards.hash = ?').get(hash);
     if (!board) return null;
     const notes = db.prepare('SELECT board_notes.*, users.username as author_username FROM board_notes LEFT JOIN users ON board_notes.author_id = users.id WHERE board_id = ? ORDER BY board_notes.created_at DESC').all(board.id);
     return { ...board, notes };
