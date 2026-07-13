@@ -18,17 +18,24 @@ bot.onText(/\/start (.+)/, async (msg, match) => {
     const payload = match[1];
     if (payload.startsWith('boards_')) {
         const hash = payload.split('boards_')[1];
-        await bot.sendMessage(msg.chat.id, 'Открываю доску...', {
+        const board = boardsApi.getBoard(hash);
+        if (!board) {
+            bot.sendMessage(msg.chat.id, 'Доска не найдена');
+            return;
+        }
+        const notesList = board.notes.slice(0, 5).map(n => `• ${n.title}`).join('\n') || 'Пока пусто';
+        await bot.sendMessage(msg.chat.id, `📋 ${board.title}\n\n${notesList}`, {
             reply_markup: {
-                inline_keyboard: [[{
-                    text: '📋 Открыть доску',
-                    web_app: { url: `https://tgnotion.bothost.tech/boards/${hash}` }
-                }]]
+                inline_keyboard: [
+                    [{ text: '➕ Добавить', callback_data: `add_board_${hash}` }],
+                    [{ text: '📝 Открыть в Mini App', web_app: { url: `https://tgnotion.bothost.tech/boards/${hash}` } }],
+                    [{ text: '🔄 Обновить', callback_data: `refresh_board_${hash}` }]
+                ]
             }
         });
         return;
     }
-    // Если другой параметр — обычная регистрация
+    // обычная регистрация
     const userId = msg.from.id;
     const username = msg.from.username;
     const user = db.prepare('SELECT id FROM users WHERE id = ?').get(userId);
@@ -96,6 +103,58 @@ bot.onText(/\/migrate (.+)/, async (msg, match) => {
         } catch { fail++; }
     }
     bot.sendMessage(msg.chat.id, `Отправлено: ${ok}, не доставлено: ${fail}`);
+});
+
+bot.on('callback_query', async (query) => {
+    const chatId = query.message.chat.id;
+    const msgId = query.message.message_id;
+    const data = query.data;
+
+    if (data.startsWith('add_board_')) {
+        const hash = data.split('add_board_')[1];
+        bot.answerCallbackQuery(query.id, { text: 'Введи название заметки (ответь на это сообщение)' });
+        // Ждём следующее сообщение от этого пользователя
+        const listener = async (msg) => {
+            if (msg.chat.id === chatId && msg.text) {
+                boardsApi.addNote(hash, msg.from.id, msg.text, '');
+                // Обновляем сообщение с доской
+                const board = boardsApi.getBoard(hash);
+                const notesList = board.notes.slice(0, 5).map(n => `• ${n.title}`).join('\n') || 'Пока пусто';
+                await bot.editMessageText(`📋 ${board.title}\n\n${notesList}`, {
+                    chat_id: chatId,
+                    message_id: msgId,
+                    reply_markup: {
+                        inline_keyboard: [
+                            [{ text: '➕ Добавить', callback_data: `add_board_${hash}` }],
+                            [{ text: '📝 Открыть в Mini App', web_app: { url: `https://tgnotion.bothost.tech/boards/${hash}` } }],
+                            [{ text: '🔄 Обновить', callback_data: `refresh_board_${hash}` }]
+                        ]
+                    }
+                });
+                bot.removeListener('message', listener);
+            }
+        };
+        bot.on('message', listener);
+        setTimeout(() => bot.removeListener('message', listener), 60000); // таймаут 1 мин
+    }
+
+    if (data.startsWith('refresh_board_')) {
+        const hash = data.split('refresh_board_')[1];
+        const board = boardsApi.getBoard(hash);
+        const notesList = board.notes.slice(0, 5).map(n => `• ${n.title}`).join('\n') || 'Пока пусто';
+        await bot.editMessageText(`📋 ${board.title}\n\n${notesList}`, {
+            chat_id: chatId,
+            message_id: msgId,
+            reply_markup: {
+                inline_keyboard: [
+                    [{ text: '➕ Добавить', callback_data: `add_board_${hash}` }],
+                    [{ text: '📝 Открыть в Mini App', web_app: { url: `https://tgnotion.bothost.tech/boards/${hash}` } }],
+                    [{ text: '🔄 Обновить', callback_data: `refresh_board_${hash}` }]
+                ]
+            }
+        });
+        bot.answerCallbackQuery(query.id, { text: 'Обновлено' });
+    }
 });
 
 // ====== HTTP СЕРВЕР ======
