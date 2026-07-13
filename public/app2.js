@@ -279,9 +279,11 @@ function viewBoardNote(title, content) {
 }
 
 function showBoardNoteMenu(event, boardHash, noteId) {
+    document.querySelector('.context-menu')?.remove();
     const menu = document.createElement('div');
     menu.className = 'context-menu';
     menu.innerHTML = `
+        <button onclick="editBoardNote('${boardHash}', ${noteId}); this.parentElement.remove()">✏️ Редактировать</button>
         <button onclick="deleteBoardNote('${boardHash}', ${noteId}); this.parentElement.remove()">🗑 Удалить</button>
         <button onclick="this.parentElement.remove()">✕ Отмена</button>`;
     menu.style.cssText = `position:fixed; top:${event.clientY}px; right:10px; z-index:1000;`;
@@ -291,6 +293,19 @@ function showBoardNoteMenu(event, boardHash, noteId) {
 
 async function deleteBoardNote(boardHash, noteId) {
     await apiDelete(`/api/boards/${boardHash}/notes/${noteId}`);
+    viewBoard(boardHash);
+}
+
+async function editBoardNote(boardHash, noteId) {
+    const newTitle = prompt('Название:', '');
+    if (newTitle === null) return;
+    const newContent = prompt('Содержимое:', '');
+    if (newContent === null) return;
+    await fetch(`/api/boards/${boardHash}/notes/${noteId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title: newTitle, content: newContent })
+    });
     viewBoard(boardHash);
 }
 

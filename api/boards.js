@@ -28,4 +28,10 @@ function deleteNote(boardHash, noteId) {
     return true;
 }
 
-module.exports = { createBoard, getBoard, addNote, deleteNote };
+
+function updateNote(noteId, title, content) {
+    db.prepare('UPDATE board_notes SET title = ?, content = ? WHERE id = ?').run(title, content || '', noteId);
+    return true;
+}
+
+module.exports = { createBoard, getBoard, addNote, deleteNote, updateNote };

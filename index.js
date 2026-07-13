@@ -287,6 +287,20 @@ const server = http.createServer((req, res) => {
         return;
     }
 
+        // API: PUT /api/boards/:hash/notes/:id
+    const boardNoteUpdateMatch = pathname.match(/^\/api\/boards\/([a-f0-9]+)\/notes\/(\d+)$/);
+    if (boardNoteUpdateMatch && req.method === 'PUT') {
+        let body = '';
+        req.on('data', chunk => body += chunk);
+        req.on('end', () => {
+            const { title, content } = JSON.parse(body);
+            db.prepare('UPDATE board_notes SET title = ?, content = ? WHERE id = ?').run(title, content || '', parseInt(boardNoteUpdateMatch[2]));
+            res.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
+            res.end(JSON.stringify({ ok: true }));
+        });
+        return;
+    }
+
     // Статика Mini App
     let filePath = pathname === '/' ? '/index.html' : pathname;
     const fullPath = path.join(__dirname, 'public', filePath);
