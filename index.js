@@ -264,6 +264,33 @@ const server = http.createServer((req, res) => {
         return;
     }
 
+        // API: POST /api/boards/share
+    if (pathname === '/api/boards/share' && req.method === 'POST') {
+        let body = '';
+        req.on('data', chunk => body += chunk);
+        req.on('end', async () => {
+            const { hash, chat_id } = JSON.parse(body);
+            const board = boardsApi.getBoard(hash);
+            if (!board) {
+                res.writeHead(404, { 'Access-Control-Allow-Origin': '*' });
+                res.end(JSON.stringify({ error: 'Board not found' }));
+                return;
+            }
+            const notesList = board.notes.slice(0, 5).map(n => `• ${n.title}`).join('\n') || 'Пока пусто';
+            await bot.sendMessage(chat_id, `📋 ${board.title}\n\n${notesList}`, {
+                reply_markup: {
+                    inline_keyboard: [
+                        [{ text: '📝 Открыть доску', web_app: { url: `https://tgnotion.bothost.tech/boards/${hash}` } }],
+                        [{ text: '🔄 Обновить', callback_data: `refresh_board_${hash}` }]
+                    ]
+                }
+            });
+            res.writeHead(200, { 'Access-Control-Allow-Origin': '*' });
+            res.end(JSON.stringify({ ok: true }));
+        });
+        return;
+    }
+
     // API: DELETE /api/boards/:hash/notes/:id
     const boardNoteDeleteMatch = pathname.match(/^\/api\/boards\/([a-f0-9]+)\/notes\/(\d+)$/);
     if (boardNoteDeleteMatch && req.method === 'DELETE') {
