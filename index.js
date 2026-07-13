@@ -10,7 +10,9 @@ const TOKEN = process.env.BOT_TOKEN || 'твой_токен';
 const ADMIN_ID = parseInt(process.env.ADMIN_ID || '0');
 const PORT = process.env.PORT || 3000;
 
-const bot = new TelegramBot(TOKEN);
+const bot = new TelegramBot(TOKEN, {
+    polling: false
+});
 bot.setWebHook(`https://tgnotion.bothost.tech/bot${TOKEN}`, {
     allowed_updates: ['message', 'callback_query', 'inline_query']
 });
