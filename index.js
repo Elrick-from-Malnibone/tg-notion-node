@@ -11,7 +11,9 @@ const ADMIN_ID = parseInt(process.env.ADMIN_ID || '0');
 const PORT = process.env.PORT || 3000;
 
 const bot = new TelegramBot(TOKEN);
-bot.setWebHook(`https://tgnotion.bothost.tech/bot${TOKEN}`);
+bot.setWebHook(`https://tgnotion.bothost.tech/bot${TOKEN}`, {
+    allowed_updates: ['message', 'callback_query', 'inline_query']
+});
 
 // ====== КОМАНДЫ ======
 bot.onText(/\/start (.+)/, async (msg, match) => {
@@ -403,30 +405,35 @@ const server = http.createServer((req, res) => {
 bot.setWebHook(`https://tgnotion.bothost.tech/bot${TOKEN}`);
 
 bot.on('inline_query', async (query) => {
-    const queryText = query.query;
-    if (queryText.startsWith('boards_')) {
-        const hash = queryText.split('boards_')[1];
-        const board = boardsApi.getBoard(hash);
-        if (!board) return;
-        const notesList = board.notes.slice(0, 5).map(n => `• ${n.title}`).join('\n') || 'Пока пусто';
-        await bot.answerInlineQuery(query.id, [{
-            type: 'article',
-            id: hash,
-            title: `📋 ${board.title}`,
-            description: notesList.substring(0, 50),
-            input_message_content: {
-                message_text: `📋 ${board.title}\n\n${notesList}`,
-                parse_mode: 'HTML'
-            },
-            reply_markup: {
-                inline_keyboard: [
-                    [{ text: '➕ Добавить', callback_data: `add_board_${hash}` }],
-                    [{ text: '📝 Открыть доску', web_app: { url: `https://tgnotion.bothost.tech/boards/${hash}` } }],
-                    [{ text: '🔄 Обновить', callback_data: `refresh_board_${hash}` }]
-                ]
-            }
-        }]);
+    const value = query.query.trim();
+    if (!value.startsWith('board_')) return;
+
+    const hash = value.slice('board_'.length);
+    const board = boardsApi.getBoard(hash);
+    if (!board) {
+        await bot.answerInlineQuery(query.id, [], { cache_time: 0, is_personal: true });
+        return;
     }
+
+    await bot.answerInlineQuery(query.id, [{
+        type: 'article',
+        id: `board_${hash}`,
+        title: `📋 ${board.title}`,
+        description: `${board.notes.length} заметок`,
+        input_message_content: {
+            message_text: `📋 *${board.title}*\nЗаметок: ${board.notes.length}`,
+            parse_mode: 'Markdown'
+        },
+        reply_markup: {
+            inline_keyboard: [
+                [{ text: '📋 Открыть доску', web_app: { url: `https://tgnotion.bothost.tech/boards/${hash}` } }],
+                [
+                    { text: '➕ Добавить', callback_data: `board_add:${hash}` },
+                    { text: '🔄 Обновить', callback_data: `board_refresh:${hash}` }
+                ]
+            ]
+        }
+    }], { cache_time: 0, is_personal: true });
 });
 
 server.listen(PORT, () => console.log(`Server running on port ${PORT}`));

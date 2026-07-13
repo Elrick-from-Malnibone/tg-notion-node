@@ -218,7 +218,7 @@ function showBoardForm() {
 }
 
 function shareBoard(hash) {
-    tg.switchInlineQuery(`boards_${hash}`, ['groups', 'channels', 'users']);
+    tg.switchInlineQuery(`board_${hash}`, ['groups', 'channels', 'users']);
 }
 
 function viewBoard(hash) {
