@@ -14,7 +14,11 @@ const bot = new TelegramBot(TOKEN, {
     polling: false
 });
 bot.setWebHook(`https://tgnotion.bothost.tech/bot${TOKEN}`, {
-    allowed_updates: ['message', 'callback_query', 'inline_query']
+    allowed_updates: ['message', 'edited_message', 'inline_query', 'chosen_inline_result', 'callback_query']
+}).then(() => {
+    console.log('Webhook set with full allowed_updates');
+}).catch(err => {
+    console.error('Webhook error:', err.message);
 });
 
 // ====== КОМАНДЫ ======
