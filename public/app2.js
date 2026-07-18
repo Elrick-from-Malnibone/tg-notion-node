@@ -218,8 +218,8 @@ function showBoardForm() {
 }
 
 function shareBoard(hash) {
-    const shareLink = `https://tgnotion.bothost.tech/boards/${hash}`;
-    const text = `📋 Доска`;
+    const shareLink = `https://t.me/Telega_notion_bot?startapp=boards_${hash}`;
+    const text = 'Заходи в доску';
     tg.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(shareLink)}&text=${encodeURIComponent(text)}`);
 }
 

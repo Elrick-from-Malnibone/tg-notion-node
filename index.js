@@ -411,39 +411,5 @@ const server = http.createServer((req, res) => {
     });
 });
 
-bot.setWebHook(`https://tgnotion.bothost.tech/bot${TOKEN}`);
-
-bot.on('inline_query', async (query) => {
-    const value = query.query.trim();
-    if (!value.startsWith('board_')) return;
-
-    const hash = value.slice('board_'.length);
-    const board = boardsApi.getBoard(hash);
-    if (!board) {
-        await bot.answerInlineQuery(query.id, [], { cache_time: 0, is_personal: true });
-        return;
-    }
-
-    await bot.answerInlineQuery(query.id, [{
-        type: 'article',
-        id: `board_${hash}`,
-        title: `📋 ${board.title}`,
-        description: `${board.notes.length} заметок`,
-        input_message_content: {
-            message_text: `📋 *${board.title}*\nЗаметок: ${board.notes.length}`,
-            parse_mode: 'Markdown'
-        },
-        reply_markup: {
-            inline_keyboard: [
-                [{ text: '📋 Открыть доску', web_app: { url: `https://tgnotion.bothost.tech/boards/${hash}` } }],
-                [
-                    { text: '➕ Добавить', callback_data: `board_add:${hash}` },
-                    { text: '🔄 Обновить', callback_data: `board_refresh:${hash}` }
-                ]
-            ]
-        }
-    }], { cache_time: 0, is_personal: true });
-});
-
 
 server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
