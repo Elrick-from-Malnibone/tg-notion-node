@@ -391,6 +391,13 @@ const server = http.createServer((req, res) => {
         return;
     }
 
+     // Health check для Bothost/Telegram
+    if (pathname === '/health' && req.method === 'GET') {
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ ok: true }));
+        return;
+    }
+
     // Статика Mini App
     let filePath = pathname === '/' ? '/index.html' : pathname;
     const fullPath = path.join(__dirname, 'public', filePath);
