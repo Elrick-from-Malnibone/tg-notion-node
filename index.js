@@ -200,11 +200,17 @@ const server = http.createServer((req, res) => {
     const pathname = parsedUrl.pathname;
 
     // Webhook Telegram
-    if (pathname.startsWith('/bot')) {
+    if (pathname.startsWith('/bot') && req.method === 'POST') {
         let body = '';
         req.on('data', chunk => body += chunk);
         req.on('end', () => {
-            try { bot.processUpdate(JSON.parse(body)); } catch(e) {}
+            const data = JSON.parse(body);
+            console.log('WEBHOOK RECEIVED:', JSON.stringify(data).substring(0, 200));
+            try { 
+                bot.processUpdate(data); 
+            } catch(e) {
+                console.error('Webhook error:', e.message);
+            }
             res.writeHead(200);
             res.end('ok');
         });
