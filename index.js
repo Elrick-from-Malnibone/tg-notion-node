@@ -164,8 +164,6 @@ async function updateInlineBoard(hash, inlineMessageId) {
 }
 
 bot.on('inline_query', async (query) => {
-
-    // Авторегистрация пользователя
     const userId = query.from.id;
     const username = query.from.username;
     const user = db.prepare('SELECT id FROM users WHERE id = ?').get(userId);
@@ -180,26 +178,22 @@ bot.on('inline_query', async (query) => {
 
     const notesList = board.notes.slice(0, 5).map(n => `• ${n.title}`).join('\n') || 'Пока пусто';
 
-    await bot.answerInlineQuery(query.id, [{
-        type: 'article',
-        id: hash,
-        title: `📋 ${board.title}`,
-        description: `${board.notes.length} заметок`,
-        input_message_content: {
-            message_text: `📋 ${board.title}\n\n${notesList}`,
-            parse_mode: 'HTML'
-        },
-        reply_markup: {
-            inline_keyboard: [
-                [{ text: '➕ Добавить', url: `https://t.me/Telega_notion_bot?startapp=board_add_${hash}` }],
-                [{ text: '📝 Открыть доску', url: `https://t.me/Telega_notion_bot?startapp=boards_${hash}` }],
-                [{ text: '🔄 Обновить', callback_data: `refresh_board_${hash}` }]
-            ]
-        }
-    }], {
-        cache_time: 0,
-        is_personal: true
-    });
+    try {
+        await bot.answerInlineQuery(query.id, [{
+            type: 'article',
+            id: `board_${hash}`,
+            title: `📋 ${board.title}`,
+            description: `${board.notes.length} заметок`,
+            input_message_content: {
+                message_text: `📋 ${board.title}\n\n${notesList}`
+            }
+        }], {
+            cache_time: 0,
+            is_personal: true
+        });
+    } catch (err) {
+        console.error('answerInlineQuery error:', err.response?.body || err);
+    }
 });
 
 // ====== HTTP СЕРВЕР ======
