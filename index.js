@@ -184,7 +184,7 @@ bot.on('inline_query', async (query) => {
         reply_markup: {
             inline_keyboard: [
                 [{ text: '➕ Добавить', callback_data: `add_board_${hash}` }],
-                [{ text: '📝 Открыть доску', web_app: { url: `https://tgnotion.bothost.tech/boards/${hash}` } }],
+                [{ text: '📝 Открыть доску', url: `https://t.me/Telega_notion_bot?startapp=boards_${hash}` }],
                 [{ text: '🔄 Обновить', callback_data: `refresh_board_${hash}` }]
             ]
         }
