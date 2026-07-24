@@ -116,27 +116,12 @@ bot.onText(/\/migrate (.+)/, async (msg, match) => {
 
 bot.on('callback_query', async (query) => {
     const data = query.data || '';
-    const userId = query.from.id;
     const inlineMessageId = query.inline_message_id;
-
-    await bot.answerCallbackQuery(query.id, { text: 'Напиши название заметки в этом чате', show_alert: false });
-
-    if (data.startsWith('add_board_')) {
-        const hash = data.slice('add_board_'.length);
-
-        pendingBoardNotes.set(userId, {
-            hash,
-            inlineMessageId,
-            expiresAt: Date.now() + 60_000
-        });
-
-        await bot.answerCallbackQuery(query.id, { text: 'Напиши название заметки в этом чате', show_alert: false });
-        return;
-    }
 
     if (data.startsWith('refresh_board_')) {
         const hash = data.slice('refresh_board_'.length);
         await updateInlineBoard(hash, inlineMessageId);
+        await bot.answerCallbackQuery(query.id, { text: 'Обновлено' });
     }
 });
 
@@ -179,6 +164,15 @@ async function updateInlineBoard(hash, inlineMessageId) {
 }
 
 bot.on('inline_query', async (query) => {
+
+    // Авторегистрация пользователя
+    const userId = query.from.id;
+    const username = query.from.username;
+    const user = db.prepare('SELECT id FROM users WHERE id = ?').get(userId);
+    if (!user) {
+        db.prepare('INSERT OR IGNORE INTO users (id, username) VALUES (?, ?)').run(userId, username);
+        db.prepare('INSERT INTO user_events (user_id, event) VALUES (?, ?)').run(userId, 'registered_inline');
+    }
     const hash = query.query.replace('board_', '');
     const board = boardsApi.getBoard(hash);
     if (!board) return;
