@@ -114,27 +114,23 @@ bot.onText(/\/migrate (.+)/, async (msg, match) => {
 });
 
 bot.on('callback_query', async (query) => {
-    const chatId = query.message.chat.id;
-    const msgId = query.message.message_id;
     const data = query.data;
+    const inlineMessageId = query.inline_message_id;
 
     if (data.startsWith('add_board_')) {
         const hash = data.split('add_board_')[1];
         bot.answerCallbackQuery(query.id, { text: 'Введи название заметки (ответь на это сообщение)' });
-        // Ждём следующее сообщение от этого пользователя
         const listener = async (msg) => {
-            if (msg.chat.id === chatId && msg.text) {
+            if (msg.text) {
                 boardsApi.addNote(hash, msg.from.id, msg.text, '');
-                // Обновляем сообщение с доской
                 const board = boardsApi.getBoard(hash);
                 const notesList = board.notes.slice(0, 5).map(n => `• ${n.title}`).join('\n') || 'Пока пусто';
                 await bot.editMessageText(`📋 ${board.title}\n\n${notesList}`, {
-                    chat_id: chatId,
-                    message_id: msgId,
+                    inline_message_id: inlineMessageId,
                     reply_markup: {
                         inline_keyboard: [
                             [{ text: '➕ Добавить', callback_data: `add_board_${hash}` }],
-                            [{ text: '📝 Открыть в Mini App', web_app: { url: `https://tgnotion.bothost.tech/boards/${hash}` } }],
+                            [{ text: '📝 Открыть доску', url: `https://t.me/Telega_notion_bot?startapp=boards_${hash}` }],
                             [{ text: '🔄 Обновить', callback_data: `refresh_board_${hash}` }]
                         ]
                     }
@@ -143,7 +139,7 @@ bot.on('callback_query', async (query) => {
             }
         };
         bot.on('message', listener);
-        setTimeout(() => bot.removeListener('message', listener), 60000); // таймаут 1 мин
+        setTimeout(() => bot.removeListener('message', listener), 60000);
     }
 
     if (data.startsWith('refresh_board_')) {
@@ -151,12 +147,11 @@ bot.on('callback_query', async (query) => {
         const board = boardsApi.getBoard(hash);
         const notesList = board.notes.slice(0, 5).map(n => `• ${n.title}`).join('\n') || 'Пока пусто';
         await bot.editMessageText(`📋 ${board.title}\n\n${notesList}`, {
-            chat_id: chatId,
-            message_id: msgId,
+            inline_message_id: inlineMessageId,
             reply_markup: {
                 inline_keyboard: [
                     [{ text: '➕ Добавить', callback_data: `add_board_${hash}` }],
-                    [{ text: '📝 Открыть в Mini App', web_app: { url: `https://tgnotion.bothost.tech/boards/${hash}` } }],
+                    [{ text: '📝 Открыть доску', url: `https://t.me/Telega_notion_bot?startapp=boards_${hash}` }],
                     [{ text: '🔄 Обновить', callback_data: `refresh_board_${hash}` }]
                 ]
             }
@@ -164,7 +159,6 @@ bot.on('callback_query', async (query) => {
         bot.answerCallbackQuery(query.id, { text: 'Обновлено' });
     }
 });
-
 bot.on('inline_query', async (query) => {
     const hash = query.query.replace('board_', '');
     const board = boardsApi.getBoard(hash);
