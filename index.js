@@ -36,7 +36,7 @@ bot.onText(/\/start (.+)/, async (msg, match) => {
         await bot.sendMessage(msg.chat.id, `📋 ${board.title}\n\n${notesList}`, {
             reply_markup: {
                 inline_keyboard: [
-                    [{ text: '➕ Добавить', callback_data: `add_board_${hash}` }],
+                    [{ text: '➕ Добавить', url: `https://t.me/Telega_notion_bot?startapp=board_add_${hash}` }],
                     [{ text: '📝 Открыть в Mini App', web_app: { url: `https://tgnotion.bothost.tech/boards/${hash}` } }],
                     [{ text: '🔄 Обновить', callback_data: `refresh_board_${hash}` }]
                 ]
@@ -170,7 +170,7 @@ async function updateInlineBoard(hash, inlineMessageId) {
         inline_message_id: inlineMessageId,
         reply_markup: {
             inline_keyboard: [
-                [{ text: '➕ Добавить', callback_data: `add_board_${hash}` }],
+                [{ text: '➕ Добавить', url: `https://t.me/Telega_notion_bot?startapp=board_add_${hash}` }],
                 [{ text: '📝 Открыть доску', url: `https://t.me/Telega_notion_bot?startapp=boards_${hash}` }],
                 [{ text: '🔄 Обновить', callback_data: `refresh_board_${hash}` }]
             ]
@@ -196,7 +196,7 @@ bot.on('inline_query', async (query) => {
         },
         reply_markup: {
             inline_keyboard: [
-                [{ text: '➕ Добавить', url: `https://t.me/Telega_notion_bot?startapp=boards_${hash}&action=add` }],
+                [{ text: '➕ Добавить', url: `https://t.me/Telega_notion_bot?startapp=board_add_${hash}&action=add` }],
                 [{ text: '📝 Открыть доску', url: `https://t.me/Telega_notion_bot?startapp=boards_${hash}` }],
                 [{ text: '🔄 Обновить', callback_data: `refresh_board_${hash}` }]
             ]

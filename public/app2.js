@@ -395,20 +395,17 @@ if (themeBtn) {
 
 const startParam = tg.initDataUnsafe?.start_param || new URLSearchParams(location.search).get('tgWebAppStartParam');
 
-if (startParam && startParam.includes('&action=add')) {
-    const hash = startParam.split('&')[0].replace('boards_', '');
+if (startParam?.startsWith('board_add_')) {
+    const hash = startParam.slice('board_add_'.length);
     currentBoardHash = hash;
     currentTab = 'boards';
-    setTimeout(() => showBoardNoteForm(hash), 300);
-} else if (startParam && startParam.startsWith('boards_')) {
-    const hash = startParam.split('boards_')[1];
-    if (hash) {
-        currentTab = 'boards';
-        document.querySelectorAll('.tab[data-tab]').forEach(t => t.classList.remove('active'));
-        const boardsTab = document.querySelector('[data-tab="boards"]');
-        if (boardsTab) boardsTab.classList.add('active');
-        setTimeout(() => viewBoard(hash), 200);
-    }
+    setTimeout(() => showBoardNoteForm(hash), 100);
+} else if (startParam?.startsWith('boards_')) {
+    const hash = startParam.slice('boards_'.length);
+    currentTab = 'boards';
+    document.querySelectorAll('.tab[data-tab]').forEach(t => t.classList.remove('active'));
+    document.querySelector('[data-tab="boards"]')?.classList.add('active');
+    setTimeout(() => viewBoard(hash), 200);
 } else if (window.location.pathname.startsWith('/boards/')) {
     const hash = window.location.pathname.split('/boards/')[1];
     if (hash) {
