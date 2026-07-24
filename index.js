@@ -130,7 +130,7 @@ bot.on('callback_query', async (query) => {
             expiresAt: Date.now() + 60_000
         });
 
-        await bot.sendMessage(userId, 'Напиши название заметки следующим сообщением.');
+        await bot.answerCallbackQuery(query.id, { text: 'Напиши название заметки в этом чате', show_alert: false });
         return;
     }
 
