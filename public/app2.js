@@ -394,7 +394,13 @@ if (themeBtn) {
 }
 
 const startParam = tg.initDataUnsafe?.start_param || new URLSearchParams(location.search).get('tgWebAppStartParam');
-if (startParam && startParam.startsWith('boards_')) {
+
+if (startParam && startParam.includes('&action=add')) {
+    const hash = startParam.split('&')[0].replace('boards_', '');
+    currentBoardHash = hash;
+    currentTab = 'boards';
+    setTimeout(() => showBoardNoteForm(hash), 300);
+} else if (startParam && startParam.startsWith('boards_')) {
     const hash = startParam.split('boards_')[1];
     if (hash) {
         currentTab = 'boards';
