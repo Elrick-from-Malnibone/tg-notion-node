@@ -119,7 +119,7 @@ bot.on('callback_query', async (query) => {
     const userId = query.from.id;
     const inlineMessageId = query.inline_message_id;
 
-    await bot.answerCallbackQuery(query.id);
+    await bot.answerCallbackQuery(query.id, { text: 'Напиши название заметки в этом чате', show_alert: false });
 
     if (data.startsWith('add_board_')) {
         const hash = data.slice('add_board_'.length);
