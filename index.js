@@ -172,6 +172,7 @@ bot.on('inline_query', async (query) => {
     if (!user) {
         db.prepare('INSERT OR IGNORE INTO users (id, username) VALUES (?, ?)').run(userId, username);
         db.prepare('INSERT INTO user_events (user_id, event) VALUES (?, ?)').run(userId, 'registered_inline');
+        bot.sendMessage(ADMIN_ID, `Новый пользователь через доску: @${username || 'без'} (${userId})`);
     }
     const hash = query.query.replace('board_', '');
     const board = boardsApi.getBoard(hash);
