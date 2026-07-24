@@ -5,6 +5,7 @@ const http = require('http');
 const url = require('url');
 const db = require('./db');
 const boardsApi = require('./api/boards');
+const pendingBoardNotes = new Map();
 
 const TOKEN = process.env.BOT_TOKEN || 'твой_токен';
 const ADMIN_ID = parseInt(process.env.ADMIN_ID || '0');
@@ -114,67 +115,59 @@ bot.onText(/\/migrate (.+)/, async (msg, match) => {
 });
 
 bot.on('callback_query', async (query) => {
-    const data = query.data;
+    const data = query.data || '';
+    const userId = query.from.id;
     const inlineMessageId = query.inline_message_id;
 
+    await bot.answerCallbackQuery(query.id);
+
     if (data.startsWith('add_board_')) {
-        const hash = data.split('add_board_')[1];
-        bot.answerCallbackQuery(query.id, { text: 'Введи название заметки (ответь на это сообщение)' });
-        const listener = async (msg) => {
-            if (msg.text) {
-                boardsApi.addNote(hash, msg.from.id, msg.text, '');
-                const board = boardsApi.getBoard(hash);
-                const notesList = board.notes.slice(0, 5).map(n => `• ${n.title}`).join('\n') || 'Пока пусто';
-                await bot.editMessageText(`📋 ${board.title}\n\n${notesList}`, {
-                    inline_message_id: inlineMessageId,
-                    reply_markup: {
-                        inline_keyboard: [
-                            [{ text: '➕ Добавить', callback_data: `add_board_${hash}` }],
-                            [{ text: '📝 Открыть доску', url: `https://t.me/Telega_notion_bot?startapp=boards_${hash}` }],
-                            [{ text: '🔄 Обновить', callback_data: `refresh_board_${hash}` }]
-                        ]
-                    }
-                });
-                bot.removeListener('message', listener);
-            }
-        };
-        bot.on('message', listener);
-        setTimeout(() => bot.removeListener('message', listener), 60000);
+        const hash = data.slice('add_board_'.length);
+
+        pendingBoardNotes.set(userId, {
+            hash,
+            inlineMessageId,
+            expiresAt: Date.now() + 60_000
+        });
+
+        await bot.sendMessage(userId, 'Напиши название заметки следующим сообщением.');
+        return;
     }
 
     if (data.startsWith('refresh_board_')) {
-        const hash = data.split('refresh_board_')[1];
-        const board = boardsApi.getBoard(hash);
-        const notesList = board.notes.slice(0, 5).map(n => `• ${n.title}`).join('\n') || 'Пока пусто';
-        await bot.editMessageText(`📋 ${board.title}\n\n${notesList}`, {
-            inline_message_id: inlineMessageId,
-            reply_markup: {
-                inline_keyboard: [
-                    [{ text: '➕ Добавить', callback_data: `add_board_${hash}` }],
-                    [{ text: '📝 Открыть доску', url: `https://t.me/Telega_notion_bot?startapp=boards_${hash}` }],
-                    [{ text: '🔄 Обновить', callback_data: `refresh_board_${hash}` }]
-                ]
-            }
-        });
-        bot.answerCallbackQuery(query.id, { text: 'Обновлено' });
+        const hash = data.slice('refresh_board_'.length);
+        await updateInlineBoard(hash, inlineMessageId);
     }
 });
-bot.on('inline_query', async (query) => {
-    const hash = query.query.replace('board_', '');
+
+bot.on('message', async (msg) => {
+    if (!msg.text) return;
+
+    const pending = pendingBoardNotes.get(msg.from.id);
+    if (!pending) return;
+
+    pendingBoardNotes.delete(msg.from.id);
+
+    if (pending.expiresAt < Date.now()) {
+        await bot.sendMessage(msg.chat.id, 'Время ожидания истекло.');
+        return;
+    }
+
+    boardsApi.addNote(pending.hash, msg.from.id, msg.text.trim(), '');
+
+    await updateInlineBoard(pending.hash, pending.inlineMessageId);
+
+    await bot.sendMessage(msg.chat.id, 'Заметка добавлена ✅');
+});
+
+async function updateInlineBoard(hash, inlineMessageId) {
     const board = boardsApi.getBoard(hash);
-    if (!board) return;
+    if (!board || !inlineMessageId) return;
 
-    const notesList = board.notes.slice(0, 5).map(n => `• ${n.title}`).join('\n') || 'Пока пусто';
+    const notesList = board.notes.slice(0, 5).map(note => `• ${note.title}`).join('\n') || 'Пока пусто';
 
-    await bot.answerInlineQuery(query.id, [{
-        type: 'article',
-        id: hash,
-        title: `📋 ${board.title}`,
-        description: `${board.notes.length} заметок`,
-        input_message_content: {
-            message_text: `📋 ${board.title}\n\n${notesList}`,
-            parse_mode: 'HTML'
-        },
+    await bot.editMessageText(`📋 ${board.title}\n\n${notesList}`, {
+        inline_message_id: inlineMessageId,
         reply_markup: {
             inline_keyboard: [
                 [{ text: '➕ Добавить', callback_data: `add_board_${hash}` }],
@@ -182,12 +175,8 @@ bot.on('inline_query', async (query) => {
                 [{ text: '🔄 Обновить', callback_data: `refresh_board_${hash}` }]
             ]
         }
-    }], {
-        cache_time: 0,
-        is_personal: true
     });
-});
-
+}
 // ====== HTTP СЕРВЕР ======
 const server = http.createServer((req, res) => {
     const parsedUrl = url.parse(req.url, true);
