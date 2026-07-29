@@ -192,37 +192,81 @@ async function loadBoards() {
 function showBoardForm() {
     const content = document.getElementById('content');
     content.innerHTML = `
-        <div class="form">
+        <div class="form" style="text-align: center;">
             <input type="text" id="boardTitle" placeholder="Название доски" class="input">
-            <select id="boardType" class="input" style="margin-top: 10px;">
-                <option value="note">Заметки</option>
-                <option value="task">Задачи</option>
-            </select>
+            <p style="color: var(--text-secondary); margin: 10px 0;">Тип доски:</p>
+            <div class="form-buttons">
+                <button class="btn btn-primary" id="typeNoteBtn">📝 Заметки</button>
+                <button class="btn btn-secondary" id="typeTaskBtn">✅ Задачи</button>
+            </div>
             <div class="form-buttons" style="margin-top: 10px;">
                 <button class="btn btn-primary" id="saveBoardBtn">Создать</button>
                 <button class="btn btn-secondary" id="cancelBoardBtn">Отмена</button>
             </div>
         </div>`;
+
+    let boardType = 'note';
+
+    document.getElementById('typeNoteBtn').addEventListener('click', () => {
+        boardType = 'note';
+        document.getElementById('typeNoteBtn').className = 'btn btn-primary';
+        document.getElementById('typeTaskBtn').className = 'btn btn-secondary';
+    });
+
+    document.getElementById('typeTaskBtn').addEventListener('click', () => {
+        boardType = 'task';
+        document.getElementById('typeTaskBtn').className = 'btn btn-primary';
+        document.getElementById('typeNoteBtn').className = 'btn btn-secondary';
+    });
+
     document.getElementById('saveBoardBtn').addEventListener('click', async () => {
         const title = document.getElementById('boardTitle').value.trim();
-        const type = document.getElementById('boardType').value;
         if (title) {
-            const result = await apiPost(BOARDS_API, { user_id: tg.initDataUnsafe.user.id, title, type });
+            const result = await apiPost(BOARDS_API, { user_id: tg.initDataUnsafe.user.id, title, type: boardType });
             if (result.ok) {
-                const link = `https://t.me/Telega_notion_bot?startapp=boards_${result.hash}`;
-                document.getElementById('content').innerHTML = `
-                    <div class="form" style="text-align: center;">
-                        <h3>✅ Доска создана!</h3>
-                        <p style="color: var(--text-secondary);">Нажми «Поделиться» чтобы отправить доску в чат</p>
-                        <button class="btn btn-primary" onclick="shareBoard('${result.hash}')">↪ Поделиться</button>
-                        <button class="btn btn-secondary" onclick="loadBoards()">← Назад</button>
-                    </div>`;
+                if (boardType === 'task') {
+                    // Для доски задач — сразу открываем форму добавления задачи
+                    currentBoardHash = result.hash;
+                    showBoardTaskForm(result.hash);
+                } else {
+                    // Для доски заметок — показываем ссылку и кнопку Поделиться
+                    const link = `https://t.me/Telega_notion_bot?startapp=boards_${result.hash}`;
+                    document.getElementById('content').innerHTML = `
+                        <div class="form" style="text-align: center;">
+                            <h3>✅ Доска создана!</h3>
+                            <p style="color: var(--text-secondary);">Нажми «Поделиться» чтобы отправить доску в чат</p>
+                            <button class="btn btn-primary" onclick="shareBoard('${result.hash}')">↪ Поделиться</button>
+                            <button class="btn btn-secondary" onclick="loadBoards()">← Назад</button>
+                        </div>`;
+                }
             }
         }
     });
+
     document.getElementById('cancelBoardBtn').addEventListener('click', loadBoards);
 }
 
+function showBoardTaskForm(boardHash) {
+    const content = document.getElementById('content');
+    const userId = tg.initDataUnsafe?.user?.id || 0;
+    content.innerHTML = `
+        <div class="form">
+            <h3 style="text-align: center;">✅ Доска задач создана!</h3>
+            <input type="text" id="boardTaskTitle" placeholder="Название задачи" class="input">
+            <div class="form-buttons">
+                <button class="btn btn-primary" id="saveBoardTaskBtn">Добавить</button>
+                <button class="btn btn-secondary" id="shareBoardTaskBtn">↪ Поделиться</button>
+            </div>
+        </div>`;
+    document.getElementById('saveBoardTaskBtn').addEventListener('click', async () => {
+        const title = document.getElementById('boardTaskTitle').value.trim();
+        if (title) {
+            await apiPost(`/api/boards/${boardHash}/tasks`, { author_id: userId, title });
+            tg.close();
+        }
+    });
+    document.getElementById('shareBoardTaskBtn').addEventListener('click', () => shareBoard(boardHash));
+}
 function shareBoard(hash) {
     tg.switchInlineQuery(`board_${hash}`, ['users', 'groups', 'channels']);
 }
