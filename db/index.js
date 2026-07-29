@@ -74,4 +74,12 @@ try {
 } catch (e) {
     // колонка уже существует — игнорируем
 }
+
+// Миграция: добавляем колонку type в board_notes, если её ещё нет
+try {
+    db.exec(`ALTER TABLE board_notes ADD COLUMN type TEXT DEFAULT 'note'`);
+} catch (e) {
+    // колонка уже существует — игнорируем
+}
+
 module.exports = db;
