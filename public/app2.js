@@ -472,12 +472,14 @@ if (themeBtn) {
 }
 
 const startParam = tg.initDataUnsafe?.start_param || new URLSearchParams(location.search).get('tgWebAppStartParam');
+alert('startParam: ' + startParam);
 
 if (startParam?.startsWith('board_add_')) {
     const hash = startParam.slice('board_add_'.length);
     currentBoardHash = hash;
     currentTab = 'boards';
     fetch(`/api/boards/${hash}`).then(r => r.json()).then(data => {
+        alert('Тип доски: ' + data.board?.type);
         if (data.board?.type === 'task') {
             setTimeout(() => showBoardTaskForm(hash), 100);
         } else {
