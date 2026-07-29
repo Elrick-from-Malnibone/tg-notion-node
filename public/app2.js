@@ -264,7 +264,7 @@ function showBoardTaskForm(boardHash) {
         if (title) {
             await apiPost(`/api/boards/${boardHash}/tasks`, { author_id: userId, title });
             document.getElementById('boardTaskTitle').value = '';
-            document.getElementById('boardTaskTitle').focus();
+            viewBoard(boardHash);
         }
     });
     document.getElementById('shareBoardTaskBtn').addEventListener('click', () => shareBoard(boardHash));
