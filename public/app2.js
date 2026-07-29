@@ -223,7 +223,7 @@ function showBoardForm() {
     document.getElementById('saveBoardBtn').addEventListener('click', async () => {
         const title = document.getElementById('boardTitle').value.trim();
         if (title) {
-            const result = await apiPost(BOARDS_API, { user_id: tg.initDataUnsafe.user.id, title, type: boardType });
+            const result = await apiPost(BOARDS_API, { user_id: tg.initDataUnsafe?.user?.id || 0, title, type: boardType });
             if (result.ok) {
                 if (boardType === 'task') {
                     // Для доски задач — сразу открываем форму добавления задачи
