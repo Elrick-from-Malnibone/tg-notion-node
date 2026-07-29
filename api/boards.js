@@ -1,10 +1,10 @@
 const db = require('../db');
 const crypto = require('crypto');
 
-function createBoard(userId, title) {
+function createBoard(userId, title, type = 'note') {
     const hash = crypto.randomBytes(4).toString('hex');
-    db.prepare('INSERT INTO boards (hash, title, created_by) VALUES (?, ?, ?)').run(hash, title, userId);
-    return { hash, title };
+    db.prepare('INSERT INTO boards (hash, title, created_by, type) VALUES (?, ?, ?, ?)').run(hash, title, userId, type);
+    return { hash, title, type };
 }
 
 function getBoard(hash) {
