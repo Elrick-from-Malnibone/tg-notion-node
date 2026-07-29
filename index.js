@@ -402,8 +402,8 @@ const server = http.createServer((req, res) => {
         let body = '';
         req.on('data', chunk => body += chunk);
         req.on('end', () => {
-            const { author_id, title, content } = JSON.parse(body);
-            const note = boardsApi.addNote(boardNotesMatch[1], author_id, title, content);
+            const { author_id, title, content, type } = JSON.parse(body);
+            const note = boardsApi.addNote(boardNotesMatch[1], author_id, title, content, type);
             if (!note) {
                 res.writeHead(404, { 'Access-Control-Allow-Origin': '*' });
                 res.end(JSON.stringify({ error: 'Board not found' }));
@@ -411,6 +411,39 @@ const server = http.createServer((req, res) => {
                 res.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
                 res.end(JSON.stringify({ ok: true, note }));
             }
+        });
+        return;
+    }
+
+    // API: POST /api/boards/:hash/tasks
+    const boardTasksMatch = pathname.match(/^\/api\/boards\/([a-f0-9]+)\/tasks$/);
+    if (boardTasksMatch && req.method === 'POST') {
+        let body = '';
+        req.on('data', chunk => body += chunk);
+        req.on('end', () => {
+            const { author_id, title } = JSON.parse(body);
+            const task = boardsApi.addTask(boardTasksMatch[1], author_id, title);
+            if (!task) {
+                res.writeHead(404, { 'Access-Control-Allow-Origin': '*' });
+                res.end(JSON.stringify({ error: 'Board not found' }));
+            } else {
+                res.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
+                res.end(JSON.stringify({ ok: true, task }));
+            }
+        });
+        return;
+    }
+  
+        // API: PUT /api/boards/:hash/tasks/:id (toggle)
+    const boardTaskToggleMatch = pathname.match(/^\/api\/boards\/([a-f0-9]+)\/tasks\/(\d+)$/);
+    if (boardTaskToggleMatch && req.method === 'PUT') {
+        let body = '';
+        req.on('data', chunk => body += chunk);
+        req.on('end', () => {
+            const { is_done } = JSON.parse(body);
+            db.prepare('UPDATE board_notes SET content = ? WHERE id = ?').run(is_done ? 'done' : '', parseInt(boardTaskToggleMatch[2]));
+            res.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
+            res.end(JSON.stringify({ ok: true }));
         });
         return;
     }

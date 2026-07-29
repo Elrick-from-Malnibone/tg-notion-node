@@ -65,9 +65,10 @@ db.exec(`
         author_id INTEGER,
         title TEXT,
         content TEXT DEFAULT '',
+        type TEXT DEFAULT 'note',
         created_at TEXT DEFAULT (datetime('now')),
         FOREIGN KEY (board_id) REFERENCES boards(id)
     );
-`);
+`)
 
 module.exports = db;

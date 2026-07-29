@@ -14,11 +14,11 @@ function getBoard(hash) {
     return { ...board, notes };
 }
 
-function addNote(boardHash, authorId, title, content) {
+function addNote(boardHash, authorId, title, content, type = 'note') {
     const board = db.prepare('SELECT id FROM boards WHERE hash = ?').get(boardHash);
     if (!board) return null;
-    const result = db.prepare('INSERT INTO board_notes (board_id, author_id, title, content) VALUES (?, ?, ?, ?)').run(board.id, authorId, title, content || '');
-    return { id: result.lastInsertRowid, title, content };
+    const result = db.prepare('INSERT INTO board_notes (board_id, author_id, title, content, type) VALUES (?, ?, ?, ?, ?)').run(board.id, authorId, title, content || '', type);
+    return { id: result.lastInsertRowid, title, content, type };
 }
 
 function deleteNote(boardHash, noteId, userId) {
@@ -42,4 +42,8 @@ function updateNote(boardHash, noteId, userId, title, content) {
     return true;
 }
 
-module.exports = { createBoard, getBoard, addNote, deleteNote, updateNote };
+function addTask(boardHash, authorId, title) {
+    return addNote(boardHash, authorId, title, '', 'task');
+}
+
+module.exports = { createBoard, getBoard, addNote, addTask, deleteNote, updateNote };

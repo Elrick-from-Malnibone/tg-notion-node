@@ -194,20 +194,26 @@ function showBoardForm() {
     content.innerHTML = `
         <div class="form">
             <input type="text" id="boardTitle" placeholder="Название доски" class="input">
-            <div class="form-buttons">
+            <select id="boardType" class="input" style="margin-top: 10px;">
+                <option value="note">Заметки</option>
+                <option value="task">Задачи</option>
+            </select>
+            <div class="form-buttons" style="margin-top: 10px;">
                 <button class="btn btn-primary" id="saveBoardBtn">Создать</button>
                 <button class="btn btn-secondary" id="cancelBoardBtn">Отмена</button>
             </div>
         </div>`;
     document.getElementById('saveBoardBtn').addEventListener('click', async () => {
         const title = document.getElementById('boardTitle').value.trim();
+        const type = document.getElementById('boardType').value;
         if (title) {
-            const result = await apiPost(BOARDS_API, { user_id: tg.initDataUnsafe.user.id, title });
+            const result = await apiPost(BOARDS_API, { user_id: tg.initDataUnsafe.user.id, title, type });
             if (result.ok) {
-                const link = `https://t.me/Telega_notion_bot?start=boards_${result.hash}`;
+                const link = `https://t.me/Telega_notion_bot?startapp=boards_${result.hash}`;
                 document.getElementById('content').innerHTML = `
                     <div class="form" style="text-align: center;">
                         <h3>✅ Доска создана!</h3>
+                        <p style="color: var(--text-secondary);">Нажми «Поделиться» чтобы отправить доску в чат</p>
                         <button class="btn btn-primary" onclick="shareBoard('${result.hash}')">↪ Поделиться</button>
                         <button class="btn btn-secondary" onclick="loadBoards()">← Назад</button>
                     </div>`;
