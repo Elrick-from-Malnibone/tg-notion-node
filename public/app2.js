@@ -271,6 +271,7 @@ function showBoardTaskForm(boardHash) {
     document.getElementById('backToBoardBtn').addEventListener('click', () => viewBoard(boardHash));
 }
 
+
 function shareBoard(hash) {
     tg.switchInlineQuery(`board_${hash}`, ['users', 'groups', 'channels']);
 }
