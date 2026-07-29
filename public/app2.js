@@ -291,7 +291,7 @@ function showBoardNoteMenu(event, boardHash, noteId, noteTitle, noteContent) {
 }
 
 async function deleteBoardNote(boardHash, noteId) {
-    await apiDelete(`/api/boards/${boardHash}/notes/${noteId}`);
+    await apiDelete(`/api/boards/${boardHash}/notes/${noteId}&user_id=${tg.initDataUnsafe.user.id}`);
     viewBoard(boardHash);
 }
 
@@ -313,7 +313,7 @@ async function editBoardNote(boardHash, noteId, oldTitle, oldContent) {
             await fetch(`/api/boards/${boardHash}/notes/${noteId}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ title: newTitle, content: newContent })
+                body: JSON.stringify({ title: newTitle, content: newContent, user_id: tg.initDataUnsafe.user.id })
             });
             viewBoard(boardHash);
         }

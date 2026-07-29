@@ -437,11 +437,12 @@ const server = http.createServer((req, res) => {
         return;
     }
 
-    // API: DELETE /api/boards/:hash/notes/:id
+        // API: DELETE /api/boards/:hash/notes/:id
     const boardNoteDeleteMatch = pathname.match(/^\/api\/boards\/([a-f0-9]+)\/notes\/(\d+)$/);
     if (boardNoteDeleteMatch && req.method === 'DELETE') {
-        const ok = boardsApi.deleteNote(boardNoteDeleteMatch[1], parseInt(boardNoteDeleteMatch[2]));
-        res.writeHead(ok ? 200 : 404, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
+        const userId = parseInt(parsedUrl.query.user_id || '0');
+        const ok = boardsApi.deleteNote(boardNoteDeleteMatch[1], parseInt(boardNoteDeleteMatch[2]), userId);
+        res.writeHead(ok ? 200 : 403, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
         res.end(JSON.stringify({ ok }));
         return;
     }
@@ -466,10 +467,10 @@ const server = http.createServer((req, res) => {
         let body = '';
         req.on('data', chunk => body += chunk);
         req.on('end', () => {
-            const { title, content } = JSON.parse(body);
-            db.prepare('UPDATE board_notes SET title = ?, content = ? WHERE id = ?').run(title, content || '', parseInt(boardNoteUpdateMatch[2]));
-            res.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
-            res.end(JSON.stringify({ ok: true }));
+            const { title, content, user_id } = JSON.parse(body);
+            const ok = boardsApi.updateNote(boardNoteUpdateMatch[1], parseInt(boardNoteUpdateMatch[2]), parseInt(user_id), title, content);
+            res.writeHead(ok ? 200 : 403, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
+            res.end(JSON.stringify({ ok }));
         });
         return;
     }

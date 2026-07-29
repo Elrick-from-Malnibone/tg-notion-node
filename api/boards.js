@@ -21,15 +21,23 @@ function addNote(boardHash, authorId, title, content) {
     return { id: result.lastInsertRowid, title, content };
 }
 
-function deleteNote(boardHash, noteId) {
+function deleteNote(boardHash, noteId, userId) {
     const board = db.prepare('SELECT id FROM boards WHERE hash = ?').get(boardHash);
     if (!board) return false;
+    const note = db.prepare('SELECT author_id FROM board_notes WHERE id = ? AND board_id = ?').get(noteId, board.id);
+    if (!note) return false;
+    if (note.author_id !== userId) return false; // не автор
     db.prepare('DELETE FROM board_notes WHERE id = ? AND board_id = ?').run(noteId, board.id);
     return true;
 }
 
 
-function updateNote(noteId, title, content) {
+function updateNote(boardHash, noteId, userId, title, content) {
+    const board = db.prepare('SELECT id FROM boards WHERE hash = ?').get(boardHash);
+    if (!board) return false;
+    const note = db.prepare('SELECT author_id FROM board_notes WHERE id = ? AND board_id = ?').get(noteId, board.id);
+    if (!note) return false;
+    if (note.author_id !== userId) return false; // не автор
     db.prepare('UPDATE board_notes SET title = ?, content = ? WHERE id = ?').run(title, content || '', noteId);
     return true;
 }
