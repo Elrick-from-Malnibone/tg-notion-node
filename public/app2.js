@@ -27,7 +27,8 @@ async function apiDelete(url) { const res = await fetch(url, { method: 'DELETE' 
 // ====== ЗАМЕТКИ ======
 async function loadNotes() {
     try {
-        const userId = tg.initDataUnsafe.user.id;
+        const userId = tg.initDataUnsafe?.user?.id;
+        if (!userId) return;
         const data = await apiGet(`${API}?user_id=${userId}`);
         renderNotes(data.notes);
     } catch(e) { console.error(e); }
