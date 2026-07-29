@@ -282,38 +282,61 @@ function viewBoard(hash) {
         }
         const board = data.board;
         const author = board.author_username ? `@${board.author_username}` : 'неизвестный';
+        const isTaskBoard = board.type === 'task';
         let html = `
             <div style="margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid var(--border);">
-                <h3>📋 ${escapeHtml(board.title)}</h3>
+                <h3>${isTaskBoard ? '✅' : '📋'} ${escapeHtml(board.title)}</h3>
                 <p style="color: var(--text-secondary); font-size: 13px;">👤 Автор: ${author}</p>
                 <p style="color: var(--text-secondary); font-size: 13px;">👥 Общая доска</p>
             </div>`;
         if (!board.notes || board.notes.length === 0) {
-            html += '<p style="color: var(--text-secondary);">Пока пусто. Добавьте первую заметку!</p>';
+            html += '<p style="color: var(--text-secondary);">Пока пусто. Добавьте первую ' + (isTaskBoard ? 'задачу' : 'заметку') + '!</p>';
         } else {
             board.notes.forEach(note => {
                 const noteAuthor = note.author_username ? `@${note.author_username}` : 'гость';
-                html += `<div class="note-card">
-                    <div class="note-header">
-                        <h3 onclick="viewBoardNote('${escapeHtml(note.title)}', '${escapeHtml(note.content || '')}')">${escapeHtml(note.title)}</h3>
-                        <button class="menu-btn" onclick="event.stopPropagation(); showBoardNoteMenu(event, '${board.hash}', ${note.id}, '${escapeHtml(note.title)}', '${escapeHtml(note.content || '')}')">⋯</button>
-                    </div>
-                    <p>${escapeHtml(note.content || '')}</p>
-                    <span class="note-date">${note.created_at} — ${noteAuthor}</span>
-                </div>`;
+                if (isTaskBoard) {
+                    html += `<div class="note-card">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <input type="checkbox" ${note.content === 'done' ? 'checked' : ''} onchange="toggleBoardTask('${board.hash}', ${note.id}, this.checked)" style="width: 20px; height: 20px; accent-color: var(--accent);">
+                            <span style="flex: 1; ${note.content === 'done' ? 'text-decoration: line-through; color: var(--text-secondary);' : ''}">${escapeHtml(note.title)}</span>
+                            <button class="menu-btn" onclick="event.stopPropagation(); deleteBoardNote('${board.hash}', ${note.id})">🗑</button>
+                        </div>
+                    </div>`;
+                } else {
+                    html += `<div class="note-card">
+                        <div class="note-header">
+                            <h3 onclick="viewBoardNote('${escapeHtml(note.title)}', '${escapeHtml(note.content || '')}')">${escapeHtml(note.title)}</h3>
+                            <button class="menu-btn" onclick="event.stopPropagation(); showBoardNoteMenu(event, '${board.hash}', ${note.id}, '${escapeHtml(note.title)}', '${escapeHtml(note.content || '')}')">⋯</button>
+                        </div>
+                        <p>${escapeHtml(note.content || '')}</p>
+                        <span class="note-date">${note.created_at} — ${noteAuthor}</span>
+                    </div>`;
+                }
             });
         }
         html += `
             <div class="form-buttons" style="margin-top: 15px;">
-                <button class="btn btn-primary" id="addBoardNoteBtn">+ Заметка</button>
-                <button class="btn btn-primary" id="shareBoardBtn">↪  Поделиться</button>
+                <button class="btn btn-primary" id="addBoardNoteBtn">+ ${isTaskBoard ? 'Задача' : 'Заметка'}</button>
+                <button class="btn btn-primary" id="shareBoardBtn">↪ Поделиться</button>
                 <button class="btn btn-secondary" onclick="loadBoards()">← Назад</button>
             </div>`;
         content.innerHTML = html;
-        document.getElementById('addBoardNoteBtn')?.addEventListener('click', () => showBoardNoteForm(hash));
-                document.getElementById('shareBoardBtn')?.addEventListener('click', () => {
-            shareBoard(hash);
+        document.getElementById('addBoardNoteBtn')?.addEventListener('click', () => {
+            if (isTaskBoard) {
+                showBoardTaskForm(hash);
+            } else {
+                showBoardNoteForm(hash);
+            }
         });
+        document.getElementById('shareBoardBtn')?.addEventListener('click', () => shareBoard(hash));
+    });
+}
+
+async function toggleBoardTask(boardHash, noteId, isDone) {
+    await fetch(`/api/boards/${boardHash}/tasks/${noteId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ is_done: isDone })
     });
 }
 
