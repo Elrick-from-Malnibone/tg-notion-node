@@ -358,8 +358,8 @@ const server = http.createServer((req, res) => {
         let body = '';
         req.on('data', chunk => body += chunk);
         req.on('end', () => {
-            const { user_id, title } = JSON.parse(body);
-            const board = boardsApi.createBoard(user_id, title);
+            const { user_id, title, type } = JSON.parse(body);
+            const board = boardsApi.createBoard(user_id, title, type);
             res.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
             res.end(JSON.stringify({ ok: true, hash: board.hash }));
         });
