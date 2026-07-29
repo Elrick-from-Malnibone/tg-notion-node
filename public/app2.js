@@ -472,7 +472,6 @@ if (themeBtn) {
 }
 
 const startParam = tg.initDataUnsafe?.start_param || new URLSearchParams(location.search).get('tgWebAppStartParam');
-alert('startParam: ' + startParam);
 
 if (startParam?.startsWith('board_task_add_')) {
     const hash = startParam.slice('board_task_add_'.length);
@@ -508,6 +507,8 @@ if (startParam?.startsWith('board_add_')) {
         if (boardsTab) boardsTab.classList.add('active');
         setTimeout(() => viewBoard(hash), 100);
     }
+
+    
 } else {
-    loadNotes();
+    loadBoards();
 }
