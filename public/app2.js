@@ -355,7 +355,7 @@ function showBoardNoteForm(boardHash) {
         const content = document.getElementById('boardNoteContent').value.trim();
         if (title) {
             await apiPost(`/api/boards/${boardHash}/notes`, { author_id: userId, title, content });
-            viewBoard(boardHash);
+            tg.close();
         }
     });
     document.getElementById('cancelBoardNoteBtn').addEventListener('click', () => viewBoard(boardHash));
