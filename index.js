@@ -92,7 +92,7 @@ bot.onText(/\/active/, async (msg) => {
     bot.sendMessage(msg.chat.id, `📊 Активность:\n- Всего: ${total}\n- Активных: ${active}\n- Просто зашли: ${total - active}`);
 });
 
-bot.onText(/\/broadcast (.+)/, async (msg, match) => {
+bot.onText(/\/broadcast ([\s\S]+)/, async (msg, match) => {
     if (msg.from.id !== ADMIN_ID) return;
     const text = match[1];
     const users = db.prepare('SELECT id FROM users').all();
