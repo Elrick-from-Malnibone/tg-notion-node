@@ -204,13 +204,13 @@ async function updateInlineBoard(hash, inlineMessageId) {
 
     const keyboard = isTaskBoard ? {
         inline_keyboard: [
-            [{ text: '➕ Добавить', url: `https://t.me/Telega_notion_bot?startapp=board_add_${hash}` }],
+            [{ text: '➕ Добавить', url: `https://t.me/Telega_notion_bot?startapp=board_task_add_${hash}` }],
             [{ text: '📝 Открыть доску', url: `https://t.me/Telega_notion_bot?startapp=boards_${hash}` }],
             [{ text: '🔄 Обновить', callback_data: `refresh_board_${hash}` }]
         ]
     } : {
         inline_keyboard: [
-            [{ text: '➕ Добавить', url: `https://t.me/Telega_notion_bot?startapp=board_add_${hash}` }],
+            [{ text: '➕ Добавить', url: `https://t.me/Telega_notion_bot?startapp=board_task_add_${hash}` }],
             [{ text: '📝 Открыть доску', url: `https://t.me/Telega_notion_bot?startapp=boards_${hash}` }],
             [{ text: '🔄 Обновить', callback_data: `refresh_board_${hash}` }]
         ]
@@ -258,7 +258,7 @@ bot.on('inline_query', async (query) => {
             },
             reply_markup: {
                 inline_keyboard: [
-                    [{ text: '➕ Добавить', url: `https://t.me/Telega_notion_bot?startapp=board_add_${hash}` }],
+                    [{ text: '➕ Добавить', url: `https://t.me/Telega_notion_bot?startapp=board_task_add_${hash}` }],
                     [{ text: '📝 Открыть доску', url: `https://t.me/Telega_notion_bot?startapp=boards_${hash}` }],
                     [{ text: '🔄 Обновить', callback_data: `refresh_board_${hash}` }]
                 ]

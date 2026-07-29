@@ -474,6 +474,13 @@ if (themeBtn) {
 const startParam = tg.initDataUnsafe?.start_param || new URLSearchParams(location.search).get('tgWebAppStartParam');
 alert('startParam: ' + startParam);
 
+if (startParam?.startsWith('board_task_add_')) {
+    const hash = startParam.slice('board_task_add_'.length);
+    currentBoardHash = hash;
+    currentTab = 'boards';
+    setTimeout(() => showBoardTaskForm(hash), 100);
+}
+
 if (startParam?.startsWith('board_add_')) {
     const hash = startParam.slice('board_add_'.length);
     currentBoardHash = hash;
