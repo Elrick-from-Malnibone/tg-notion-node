@@ -68,5 +68,7 @@ db.exec(`
         created_at TEXT DEFAULT (datetime('now'))
     );
 `)
+// Миграция: добавляем колонку type, если её ещё нет
+db.exec(`ALTER TABLE boards ADD COLUMN type TEXT DEFAULT 'note'`);
 
 module.exports = db;
