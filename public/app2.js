@@ -477,7 +477,13 @@ if (startParam?.startsWith('board_add_')) {
     const hash = startParam.slice('board_add_'.length);
     currentBoardHash = hash;
     currentTab = 'boards';
-    setTimeout(() => showBoardNoteForm(hash), 100);
+    fetch(`/api/boards/${hash}`).then(r => r.json()).then(data => {
+        if (data.board?.type === 'task') {
+            setTimeout(() => showBoardTaskForm(hash), 100);
+        } else {
+            setTimeout(() => showBoardNoteForm(hash), 100);
+        }
+    });
 } else if (startParam?.startsWith('boards_')) {
     const hash = startParam.slice('boards_'.length);
     currentTab = 'boards';
