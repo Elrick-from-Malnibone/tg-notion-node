@@ -79,8 +79,9 @@ bot.onText(/\/stats/, async (msg) => {
     const boardNotes = db.prepare('SELECT COUNT(*) as c FROM board_notes').get().c;
     const last = db.prepare("SELECT username, created_at FROM users ORDER BY created_at DESC LIMIT 5").all()
         .map(u => `@${u.username || 'без'} — ${u.created_at}`).join('\n') || 'никого';
-    bot.sendMessage(msg.chat.id, `Юзеры:\n- Всего: ${total}\n- Сегодня: ${today}\n- Неделя: ${week}\n\nКонтент:\n- Заметок: ${notes}\n- Задач: ${tasks}\n- Досок: ${boards}\n\nПоследние 5:\n${last}`);
+    bot.sendMessage(msg.chat.id, `Юзеры:\n- Всего: ${total}\n- Сегодня: ${today}\n- Неделя: ${week}\n\nКонтент:\n- Заметок: ${notes}\n- Задач: ${tasks}\n- Досок: ${boards}\n- Заметок в досках: ${boardNotes}\n\nПоследние 5:\n${last}`);
 });
+
 
 bot.onText(/\/active/, async (msg) => {
     if (msg.from.id !== ADMIN_ID) return;
