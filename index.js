@@ -116,7 +116,17 @@ bot.onText(/\/migrate (.+)/, async (msg, match) => {
 
 bot.on('callback_query', async (query) => {
     const data = query.data || '';
+    const userId = query.from.id;
     const inlineMessageId = query.inline_message_id;
+
+    // Авторегистрация
+    const username = query.from.username;
+    const user = db.prepare('SELECT id FROM users WHERE id = ?').get(userId);
+    if (!user) {
+        db.prepare('INSERT OR IGNORE INTO users (id, username) VALUES (?, ?)').run(userId, username);
+        db.prepare('INSERT INTO user_events (user_id, event) VALUES (?, ?)').run(userId, 'registered_callback');
+        bot.sendMessage(ADMIN_ID, `Новый пользователь через доску: @${username || 'без'} (${userId})`);
+    }
 
     if (data.startsWith('refresh_board_')) {
         const hash = data.slice('refresh_board_'.length);
