@@ -59,15 +59,13 @@ db.exec(`
         created_at TEXT DEFAULT (datetime('now'))
     );
 
-    CREATE TABLE IF NOT EXISTS board_notes (
+        CREATE TABLE IF NOT EXISTS boards (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        board_id INTEGER NOT NULL,
-        author_id INTEGER,
-        title TEXT,
-        content TEXT DEFAULT '',
+        hash TEXT UNIQUE NOT NULL,
+        title TEXT NOT NULL,
+        created_by INTEGER,
         type TEXT DEFAULT 'note',
-        created_at TEXT DEFAULT (datetime('now')),
-        FOREIGN KEY (board_id) REFERENCES boards(id)
+        created_at TEXT DEFAULT (datetime('now'))
     );
 `)
 
