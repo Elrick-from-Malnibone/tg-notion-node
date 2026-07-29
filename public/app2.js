@@ -252,21 +252,25 @@ function showBoardTaskForm(boardHash) {
     const userId = tg.initDataUnsafe?.user?.id || 0;
     content.innerHTML = `
         <div class="form">
-            <h3 style="text-align: center;">✅ Доска задач создана!</h3>
             <input type="text" id="boardTaskTitle" placeholder="Название задачи" class="input">
             <div class="form-buttons">
                 <button class="btn btn-primary" id="saveBoardTaskBtn">Добавить</button>
                 <button class="btn btn-secondary" id="shareBoardTaskBtn">↪ Поделиться</button>
+                <button class="btn btn-secondary" id="backToBoardBtn">← Назад</button>
             </div>
         </div>`;
     document.getElementById('saveBoardTaskBtn').addEventListener('click', async () => {
         const title = document.getElementById('boardTaskTitle').value.trim();
         if (title) {
             await apiPost(`/api/boards/${boardHash}/tasks`, { author_id: userId, title });
+            document.getElementById('boardTaskTitle').value = '';
+            document.getElementById('boardTaskTitle').focus();
         }
     });
     document.getElementById('shareBoardTaskBtn').addEventListener('click', () => shareBoard(boardHash));
+    document.getElementById('backToBoardBtn').addEventListener('click', () => viewBoard(boardHash));
 }
+
 function shareBoard(hash) {
     tg.switchInlineQuery(`board_${hash}`, ['users', 'groups', 'channels']);
 }
