@@ -114,6 +114,29 @@ bot.onText(/\/migrate (.+)/, async (msg, match) => {
     bot.sendMessage(msg.chat.id, `Отправлено: ${ok}, не доставлено: ${fail}`);
 });
 
+bot.onText(/\/fix_users/, async (msg) => {
+    if (msg.from.id !== ADMIN_ID) return;
+
+    const lostUsers = db.prepare(`
+        SELECT DISTINCT author_id FROM board_notes 
+        WHERE author_id NOT IN (SELECT id FROM users)
+    `).all();
+
+    if (lostUsers.length === 0) {
+        bot.sendMessage(msg.chat.id, 'Потерянных юзеров не найдено.');
+        return;
+    }
+
+    let added = 0;
+    for (const u of lostUsers) {
+        db.prepare('INSERT OR IGNORE INTO users (id) VALUES (?)').run(u.author_id);
+        db.prepare('INSERT INTO user_events (user_id, event) VALUES (?, ?)').run(u.author_id, 'recovered');
+        added++;
+    }
+
+    bot.sendMessage(msg.chat.id, `Восстановлено юзеров: ${added}`);
+});
+
 bot.on('callback_query', async (query) => {
     const data = query.data || '';
     const userId = query.from.id;
