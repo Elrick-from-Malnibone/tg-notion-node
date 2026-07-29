@@ -263,7 +263,6 @@ function showBoardTaskForm(boardHash) {
         const title = document.getElementById('boardTaskTitle').value.trim();
         if (title) {
             await apiPost(`/api/boards/${boardHash}/tasks`, { author_id: userId, title });
-            tg.close();
         }
     });
     document.getElementById('shareBoardTaskBtn').addEventListener('click', () => shareBoard(boardHash));

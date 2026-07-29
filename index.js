@@ -189,17 +189,36 @@ async function updateInlineBoard(hash, inlineMessageId) {
     const board = boardsApi.getBoard(hash);
     if (!board || !inlineMessageId) return;
 
-    const notesList = board.notes.slice(0, 5).map(note => `• ${note.title}`).join('\n') || 'Пока пусто';
+    const isTaskBoard = board.type === 'task';
+    let text = `📋 ${board.title}\n\n`;
+    
+    if (isTaskBoard) {
+        board.notes.forEach(note => {
+            const done = note.content === 'done' ? '✅' : '☐';
+            text += `${done} ${note.title}\n`;
+        });
+    } else {
+        const notesList = board.notes.slice(0, 5).map(n => `• ${n.title}`).join('\n') || 'Пока пусто';
+        text += notesList;
+    }
 
-    await bot.editMessageText(`📋 ${board.title}\n\n${notesList}`, {
+    const keyboard = isTaskBoard ? {
+        inline_keyboard: [
+            [{ text: '➕ Добавить', url: `https://t.me/Telega_notion_bot?startapp=board_add_${hash}` }],
+            [{ text: '📝 Открыть доску', url: `https://t.me/Telega_notion_bot?startapp=boards_${hash}` }],
+            [{ text: '🔄 Обновить', callback_data: `refresh_board_${hash}` }]
+        ]
+    } : {
+        inline_keyboard: [
+            [{ text: '➕ Добавить', url: `https://t.me/Telega_notion_bot?startapp=board_add_${hash}` }],
+            [{ text: '📝 Открыть доску', url: `https://t.me/Telega_notion_bot?startapp=boards_${hash}` }],
+            [{ text: '🔄 Обновить', callback_data: `refresh_board_${hash}` }]
+        ]
+    };
+
+    await bot.editMessageText(text, {
         inline_message_id: inlineMessageId,
-        reply_markup: {
-            inline_keyboard: [
-                [{ text: '➕ Добавить', url: `https://t.me/Telega_notion_bot?startapp=board_add_${hash}` }],
-                [{ text: '📝 Открыть доску', url: `https://t.me/Telega_notion_bot?startapp=boards_${hash}` }],
-                [{ text: '🔄 Обновить', callback_data: `refresh_board_${hash}` }]
-            ]
-        }
+        reply_markup: keyboard
     });
 }
 
@@ -216,7 +235,17 @@ bot.on('inline_query', async (query) => {
     const board = boardsApi.getBoard(hash);
     if (!board) return;
 
-    const notesList = board.notes.slice(0, 5).map(n => `• ${n.title}`).join('\n') || 'Пока пусто';
+    const isTaskBoard = board.type === 'task';
+    let messageText = `📋 ${board.title}\n\n`;
+    if (isTaskBoard) {
+        board.notes.forEach(note => {
+            const done = note.content === 'done' ? '✅' : '☐';
+            messageText += `${done} ${note.title}\n`;
+        });
+    } else {
+        const notesList = board.notes.slice(0, 5).map(n => `• ${n.title}`).join('\n') || 'Пока пусто';
+        messageText += notesList;
+    }
 
     try {
         await bot.answerInlineQuery(query.id, [{
@@ -225,7 +254,7 @@ bot.on('inline_query', async (query) => {
             title: `📋 ${board.title}`,
             description: `${board.notes.length} заметок`,
             input_message_content: {
-                message_text: `📋 ${board.title}\n\n${notesList}`
+                message_text: messageText
             },
             reply_markup: {
                 inline_keyboard: [
