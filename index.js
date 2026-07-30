@@ -444,13 +444,22 @@ const server = http.createServer((req, res) => {
         return;
     }
 
-    // API: POST /api/boards/:hash/tasks
+        // API: POST /api/boards/:hash/tasks
     const boardTasksMatch = pathname.match(/^\/api\/boards\/([a-f0-9]+)\/tasks$/);
     if (boardTasksMatch && req.method === 'POST') {
         let body = '';
         req.on('data', chunk => body += chunk);
         req.on('end', () => {
             const { author_id, title } = JSON.parse(body);
+            
+            // Авторегистрация
+            const user = db.prepare('SELECT id FROM users WHERE id = ?').get(author_id);
+            if (!user) {
+                db.prepare('INSERT OR IGNORE INTO users (id) VALUES (?)').run(author_id);
+                db.prepare('INSERT INTO user_events (user_id, event) VALUES (?, ?)').run(author_id, 'registered_task');
+                bot.sendMessage(ADMIN_ID, `Новый пользователь через задачу: ${author_id}`);
+            }
+            
             const task = boardsApi.addTask(boardTasksMatch[1], author_id, title);
             if (!task) {
                 res.writeHead(404, { 'Access-Control-Allow-Origin': '*' });
