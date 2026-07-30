@@ -369,7 +369,7 @@ function showBoardNoteMenu(event, boardHash, noteId, noteTitle, noteContent) {
 }
 
 async function deleteBoardNote(boardHash, noteId) {
-    await apiDelete(`/api/boards/${boardHash}/notes/${noteId}&user_id=${tg.initDataUnsafe.user.id}`);
+    await apiDelete(`/api/boards/${boardHash}/notes/${noteId}?user_id=${tg.initDataUnsafe.user.id}`);
     viewBoard(boardHash);
 }
 
