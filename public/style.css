@@ -393,7 +393,8 @@ body {
 .add-btn {
     position: fixed;
     bottom: 20px;
-    right: 90px;
+    left: 50%;
+    transform: translateX(-50%);
     width: 56px;
     height: 56px;
     border-radius: 50%;
