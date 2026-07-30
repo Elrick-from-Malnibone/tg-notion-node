@@ -528,16 +528,7 @@ body {
     position: fixed;
     bottom: 30px;
     right: 20px;
-    width: 48px;
-    height: 48px;
-    border-radius: 50%;
-    background: var(--accent);
-    color: white;
+    font-size: 28px;
     text-decoration: none;
-    font-size: 22px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
     z-index: 100;
 }
