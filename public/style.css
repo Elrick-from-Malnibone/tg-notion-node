@@ -392,21 +392,17 @@ body {
 /* Кнопка добавления */
 .add-btn {
     position: fixed;
-    bottom: 24px;
-    right: 24px;
-    width: 52px;
-    height: 52px;
+    bottom: 20px;
+    right: 90px;
+    width: 56px;
+    height: 56px;
     border-radius: 50%;
     background: var(--accent);
     color: white;
     border: none;
-    font-size: 26px;
+    font-size: 28px;
     cursor: pointer;
-    transition: all 0.2s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 10;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
 }
 
 .add-btn:hover {
@@ -525,4 +521,19 @@ body {
 
 .context-menu button:hover {
     background: var(--border);
+}
+
+.chat-btn {
+    position: fixed;
+    bottom: 30px;
+    right: 20px;
+    background: var(--surface);
+    color: var(--text);
+    padding: 10px 16px;
+    border-radius: 20px;
+    text-decoration: none;
+    font-size: 14px;
+    border: 1px solid var(--border);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    z-index: 100;
 }
