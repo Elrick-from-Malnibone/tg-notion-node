@@ -141,7 +141,7 @@ bot.onText(/\/fix_users/, async (msg) => {
 
 bot.onText(/\/ac/, async (msg) => {
     if (msg.from.id !== ADMIN_ID) return;
-    bot.sendMessage(msg.chat.id, `🔧 Админ-команды:\n\n/stats — статистика\n/active — активные юзеры\n/broadcast текст — рассылка\n/migrate id1,id2,... — вернуть юзеров\n/fix_users — восстановить потерянных юзеров\n/ac — список команд`);
+    bot.sendMessage(msg.chat.id, `🔧 Админ-команды:\n\n/stats — статистика\n/active — активные юзеры\n/broadcast текст — рассылка\n/post — рассылка пересланного поста\n/migrate id1,id2,... — вернуть юзеров\n/fix_users — восстановить потерянных юзеров\n/ac — список команд`);
 });
 
 bot.on('callback_query', async (query) => {
