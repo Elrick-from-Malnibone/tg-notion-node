@@ -404,6 +404,21 @@ const server = http.createServer((req, res) => {
         res.end(JSON.stringify({ ok: true }));
         return;
     }
+
+        // API: POST /tasks/:id/remind
+    const taskRemindMatch = pathname.match(/^\/tasks\/(\d+)\/remind$/);
+    if (taskRemindMatch && req.method === 'POST') {
+        let body = '';
+        req.on('data', chunk => body += chunk);
+        req.on('end', () => {
+            const taskId = parseInt(taskRemindMatch[1]);
+            const { remind_at } = JSON.parse(body);
+            db.prepare('UPDATE tasks SET remind_at = ? WHERE id = ?').run(remind_at, taskId);
+            res.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
+            res.end(JSON.stringify({ ok: true }));
+        });
+        return;
+    }
     
         // API: GET /boards?user_id=...
     if (pathname === '/api/boards' && req.method === 'GET') {
