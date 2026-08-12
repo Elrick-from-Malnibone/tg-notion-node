@@ -451,20 +451,16 @@ function showRemindForm(taskId) {
     content.innerHTML = `
         <div class="form" style="text-align: center;">
             <p style="color: var(--text-secondary); margin-bottom: 15px;">Когда напомнить?</p>
-            <input type="datetime-local" id="remindAt" class="input" style="position: absolute; opacity: 0; pointer-events: none;">
-            <button class="btn btn-primary" id="pickDateBtn" style="width: 100%;">📅 Выбрать дату и время</button>
+            <div style="position: relative;">
+                <input type="datetime-local" id="remindAt" class="input" style="position: absolute; opacity: 0; width: 100%; height: 100%; top: 0; left: 0; cursor: pointer;">
+                <button class="btn btn-primary" style="width: 100%;">📅 Выбрать дату и время</button>
+            </div>
             <div id="selectedTime" style="color: var(--accent); margin-top: 10px; font-size: 14px;"></div>
             <div class="form-buttons" style="margin-top: 15px;">
                 <button class="btn btn-primary" id="saveRemindBtn">Сохранить</button>
                 <button class="btn btn-secondary" id="cancelRemindBtn">Отмена</button>
             </div>
         </div>`;
-
-    document.getElementById('pickDateBtn').addEventListener('click', () => {
-        const input = document.getElementById('remindAt');
-        input.style.pointerEvents = 'auto';
-        input.showPicker();
-    });
 
     document.getElementById('remindAt').addEventListener('change', () => {
         const value = document.getElementById('remindAt').value;
