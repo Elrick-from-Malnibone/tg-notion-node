@@ -619,5 +619,21 @@ const server = http.createServer((req, res) => {
     });
 });
 
+// Проверка напоминаний каждую минуту
+setInterval(async () => {
+    const now = new Date();
+    const nowStr = `${String(now.getDate()).padStart(2, '0')}.${String(now.getMonth() + 1).padStart(2, '0')}.${now.getFullYear()} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+    
+    const dueTasks = db.prepare('SELECT id, user_id, title FROM tasks WHERE remind_at = ? AND is_done = 0').all(nowStr);
+    
+    for (const task of dueTasks) {
+        try {
+            await bot.sendMessage(task.user_id, `⏰ Напоминание: ${task.title}`);
+            db.prepare('UPDATE tasks SET remind_at = NULL WHERE id = ?').run(task.id);
+        } catch (err) {
+            console.error('Remind error:', err.message);
+        }
+    }
+}, 60000);
 
 server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
