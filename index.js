@@ -192,27 +192,27 @@ bot.onText(/\/post/, async (msg) => {
     if (msg.from.id !== ADMIN_ID) return;
     
     waitingForPost = true;
-    await bot.sendMessage(msg.chat.id, 'Жду пост. Пришли мне пересланное сообщение, и я разошлю его всем пользователям.');
+    await bot.sendMessage(msg.chat.id, 'Жду пост. Пришли мне пересланное сообщение (можно из любого чата), и я разошлю его всем пользователям.');
 });
 
-// Ловим следующее сообщение от админа, если мы в режиме ожидания
 bot.on('message', async (msg) => {
     if (!waitingForPost || msg.from.id !== ADMIN_ID) return;
     if (msg.text && msg.text.startsWith('/')) return;
     
     waitingForPost = false;
     
-    // ТЕСТ: только на админа
-    const testId = msg.from.id;
+    const users = db.prepare('SELECT id FROM users').all();
     let ok = 0, fail = 0;
     
-    await bot.sendMessage(msg.chat.id, 'Тестовая рассылка на админа...');
+    await bot.sendMessage(msg.chat.id, 'Рассылка поста началась...');
     
-    try {
-        await bot.copyMessage(testId, msg.chat.id, msg.message_id);
-        ok++;
-    } catch (err) {
-        fail++;
+    for (const user of users) {
+        try {
+            await bot.copyMessage(user.id, msg.chat.id, msg.message_id);
+            ok++;
+        } catch (err) {
+            fail++;
+        }
     }
     
     await bot.sendMessage(msg.chat.id, `Готово. Отправлено: ${ok}, не доставлено: ${fail}`);
