@@ -449,22 +449,35 @@ function showBoardNoteForm(boardHash) {
 function showRemindForm(taskId) {
     const content = document.getElementById('content');
     content.innerHTML = `
-        <div class="form">
-            <input type="datetime-local" id="remindAt" class="input">
-            <div class="form-buttons">
+        <div class="form" style="text-align: center;">
+            <p style="color: var(--text-secondary); margin-bottom: 15px;">Когда напомнить?</p>
+            <input type="datetime-local" id="remindAt" class="input" style="position: absolute; opacity: 0; pointer-events: none;">
+            <button class="btn btn-primary" id="pickDateBtn" style="width: 100%;">📅 Выбрать дату и время</button>
+            <div id="selectedTime" style="color: var(--accent); margin-top: 10px; font-size: 14px;"></div>
+            <div class="form-buttons" style="margin-top: 15px;">
                 <button class="btn btn-primary" id="saveRemindBtn">Сохранить</button>
                 <button class="btn btn-secondary" id="cancelRemindBtn">Отмена</button>
             </div>
         </div>`;
+
+    document.getElementById('pickDateBtn').addEventListener('click', () => {
+        const input = document.getElementById('remindAt');
+        input.style.pointerEvents = 'auto';
+        input.showPicker();
+    });
+
+    document.getElementById('remindAt').addEventListener('change', () => {
+        const value = document.getElementById('remindAt').value;
+        if (value) {
+            const formatted = value.replace('T', ' ').slice(0, 16);
+            document.getElementById('selectedTime').textContent = formatted;
+        }
+    });
+
     document.getElementById('saveRemindBtn').addEventListener('click', async () => {
         const datetime = document.getElementById('remindAt').value;
         if (datetime) {
-            // Конвертируем в нужный формат ДД.ММ.ГГГГ ЧЧ:ММ
-            const [date, time] = datetime.split('T');
-            const [year, month, day] = date.split('-');
-            const [hours, minutes] = time.split(':');
-            const formatted = `${day}.${month}.${year} ${hours}:${minutes}`;
-            
+            const formatted = datetime.replace('T', ' ').slice(0, 16);
             await fetch(`/tasks/${taskId}/remind`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -473,6 +486,7 @@ function showRemindForm(taskId) {
             loadTasks();
         }
     });
+
     document.getElementById('cancelRemindBtn').addEventListener('click', loadTasks);
 }
 
