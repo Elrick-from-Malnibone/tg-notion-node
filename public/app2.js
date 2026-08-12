@@ -347,7 +347,7 @@ async function toggleBoardTask(boardHash, noteId, isDone) {
     await fetch(`/api/boards/${boardHash}/tasks/${noteId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ is_done: isDone })
+        body: JSON.stringify({ is_done: isDone, user_id: tg.initDataUnsafe.user.id })
     });
 }
 

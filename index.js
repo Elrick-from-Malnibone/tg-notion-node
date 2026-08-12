@@ -525,9 +525,16 @@ const server = http.createServer((req, res) => {
     if (boardTaskToggleMatch && req.method === 'PUT') {
         let body = '';
         req.on('data', chunk => body += chunk);
-        req.on('end', () => {
-            const { is_done } = JSON.parse(body);
-            db.prepare('UPDATE board_notes SET content = ? WHERE id = ?').run(is_done ? 'done' : '', parseInt(boardTaskToggleMatch[2]));
+                req.on('end', () => {
+            const { is_done, user_id } = JSON.parse(body);
+            const taskId = parseInt(boardTaskToggleMatch[2]);
+            const task = db.prepare('SELECT author_id FROM board_notes WHERE id = ?').get(taskId);
+            if (!task || task.author_id !== parseInt(user_id)) {
+                res.writeHead(403, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
+                res.end(JSON.stringify({ ok: false, error: 'Forbidden' }));
+                return;
+            }
+            db.prepare('UPDATE board_notes SET content = ? WHERE id = ?').run(is_done ? 'done' : '', taskId);
             res.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
             res.end(JSON.stringify({ ok: true }));
         });
