@@ -127,7 +127,13 @@ function renderTasks(tasks) {
 function showTaskMenu(event, id) {
     const menu = document.createElement('div');
     menu.className = 'context-menu';
-    menu.innerHTML = `<button onclick="deleteTask(${id}); this.parentElement.remove()">🗑 Удалить</button><button onclick="this.parentElement.remove()">✕ Отмена</button>`;
+    menu.innerHTML = `
+        <button onclick="showRemindForm(${id}); this.parentElement.remove()">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style="vertical-align: middle; margin-right: 5px;"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5"/><path d="M8 5v3l2 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Напомнить
+        </button>
+        <button onclick="deleteTask(${id}); this.parentElement.remove()">🗑 Удалить</button>
+        <button onclick="this.parentElement.remove()">✕ Отмена</button>`;
     menu.style.cssText = `position:fixed; top:${event.clientY}px; right:10px; z-index:1000;`;
     document.body.appendChild(menu);
     setTimeout(() => document.addEventListener('click', () => menu.remove(), { once: true }), 0);
@@ -438,6 +444,32 @@ function showBoardNoteForm(boardHash) {
     });
     document.getElementById('cancelBoardNoteBtn').addEventListener('click', () => viewBoard(boardHash));
 }
+
+
+function showRemindForm(taskId) {
+    const content = document.getElementById('content');
+    content.innerHTML = `
+        <div class="form">
+            <input type="text" id="remindAt" placeholder="Формат: 31.12.2026 15:00" class="input">
+            <div class="form-buttons">
+                <button class="btn btn-primary" id="saveRemindBtn">Сохранить</button>
+                <button class="btn btn-secondary" id="cancelRemindBtn">Отмена</button>
+            </div>
+        </div>`;
+    document.getElementById('saveRemindBtn').addEventListener('click', async () => {
+        const datetime = document.getElementById('remindAt').value.trim();
+        if (datetime) {
+            await fetch(`/tasks/${taskId}/remind`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ remind_at: datetime })
+            });
+            loadTasks();
+        }
+    });
+    document.getElementById('cancelRemindBtn').addEventListener('click', loadTasks);
+}
+
 
 // ====== ОБЩЕЕ ======
 function escapeHtml(text) {

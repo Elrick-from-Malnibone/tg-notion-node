@@ -38,6 +38,7 @@ db.exec(`
         deadline TEXT,
         is_shared INTEGER DEFAULT 0,
         share_count INTEGER DEFAULT 0,
+        remind_at TEXT,
         created_at TEXT DEFAULT (datetime('now')),
         updated_at TEXT DEFAULT (datetime('now')),
         FOREIGN KEY (user_id) REFERENCES users(id)
@@ -51,24 +52,18 @@ db.exec(`
         FOREIGN KEY (user_id) REFERENCES users(id)
     );
 
-        CREATE TABLE IF NOT EXISTS boards (
+    CREATE TABLE IF NOT EXISTS board_notes (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        hash TEXT UNIQUE NOT NULL,
-        title TEXT NOT NULL,
-        created_by INTEGER,
-        created_at TEXT DEFAULT (datetime('now'))
-    );
-
-        CREATE TABLE IF NOT EXISTS boards (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        hash TEXT UNIQUE NOT NULL,
-        title TEXT NOT NULL,
-        created_by INTEGER,
+        board_id INTEGER NOT NULL,
+        author_id INTEGER,
+        title TEXT,
+        content TEXT DEFAULT '',
         type TEXT DEFAULT 'note',
-        created_at TEXT DEFAULT (datetime('now'))
+        created_at TEXT DEFAULT (datetime('now')),
+        FOREIGN KEY (board_id) REFERENCES boards(id)
     );
-`)
-// Безопасная миграция: добавляем колонку type, если её ещё нет
+`);
+// Безопасная миграция: добавляем колонку type в boards, если её ещё нет
 try {
     db.exec(`ALTER TABLE boards ADD COLUMN type TEXT DEFAULT 'note'`);
 } catch (e) {
@@ -78,6 +73,13 @@ try {
 // Миграция: добавляем колонку type в board_notes, если её ещё нет
 try {
     db.exec(`ALTER TABLE board_notes ADD COLUMN type TEXT DEFAULT 'note'`);
+} catch (e) {
+    // колонка уже существует — игнорируем
+}
+
+// Миграция: добавляем колонку remind_at в tasks, если её ещё нет
+try {
+    db.exec(`ALTER TABLE tasks ADD COLUMN remind_at TEXT`);
 } catch (e) {
     // колонка уже существует — игнорируем
 }
