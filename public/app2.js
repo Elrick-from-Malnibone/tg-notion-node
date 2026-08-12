@@ -450,26 +450,31 @@ function showRemindForm(taskId) {
     const content = document.getElementById('content');
     content.innerHTML = `
         <div class="form">
-            <input type="text" id="remindAt" placeholder="Формат: 31.12.2026 15:00" class="input">
+            <input type="datetime-local" id="remindAt" class="input">
             <div class="form-buttons">
                 <button class="btn btn-primary" id="saveRemindBtn">Сохранить</button>
                 <button class="btn btn-secondary" id="cancelRemindBtn">Отмена</button>
             </div>
         </div>`;
     document.getElementById('saveRemindBtn').addEventListener('click', async () => {
-        const datetime = document.getElementById('remindAt').value.trim();
+        const datetime = document.getElementById('remindAt').value;
         if (datetime) {
+            // Конвертируем в нужный формат ДД.ММ.ГГГГ ЧЧ:ММ
+            const [date, time] = datetime.split('T');
+            const [year, month, day] = date.split('-');
+            const [hours, minutes] = time.split(':');
+            const formatted = `${day}.${month}.${year} ${hours}:${minutes}`;
+            
             await fetch(`/tasks/${taskId}/remind`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ remind_at: datetime })
+                body: JSON.stringify({ remind_at: formatted })
             });
             loadTasks();
         }
     });
     document.getElementById('cancelRemindBtn').addEventListener('click', loadTasks);
 }
-
 
 // ====== ОБЩЕЕ ======
 function escapeHtml(text) {
