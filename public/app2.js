@@ -118,18 +118,18 @@ function renderTasks(tasks) {
                 <div style="display: flex; align-items: center; gap: 10px;">
                     <input type="checkbox" ${task.is_done ? 'checked' : ''} onchange="toggleTask(${task.id}, this.checked)" style="width: 20px; height: 20px; accent-color: var(--accent);">
                     <span style="flex: 1; ${task.is_done ? 'text-decoration: line-through; color: var(--text-secondary);' : ''}">${escapeHtml(task.title)}</span>
-                    <button class="menu-btn" onclick="event.stopPropagation(); showTaskMenu(event, ${task.id})">⋯</button>
+                    <button class="menu-btn" onclick="event.stopPropagation(); showTaskMenu(event, ${task.id}, '${task.remind_at || ''}')">⋯</button>
                 </div>
             </div>`;
     });
     content.innerHTML = html;
 }
 
-function showTaskMenu(event, id) {
+function showTaskMenu(event, id, remindAt = '') {
     const menu = document.createElement('div');
     menu.className = 'context-menu';
     menu.innerHTML = `
-        <button onclick="showRemindForm(${id}, '${task.remind_at || ''}'); this.parentElement.remove()">
+        <button onclick="showRemindForm(${id}, '${remindAt}'); this.parentElement.remove()">
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style="vertical-align: middle; margin-right: 5px;"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5"/><path d="M8 5v3l2 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
             Напомнить
         </button>
