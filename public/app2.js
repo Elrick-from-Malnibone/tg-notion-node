@@ -444,26 +444,53 @@ function showBoardNoteForm(boardHash) {
     document.getElementById('cancelBoardNoteBtn').addEventListener('click', () => viewBoard(boardHash));
 }
 
+
 function showRemindForm(taskId, remindAt = '') {
     const content = document.getElementById('content');
     content.innerHTML = `
         <div class="form" style="text-align: center;">
             <p style="color: var(--text-secondary); margin-bottom: 15px;">Когда напомнить?</p>
-            <input type="datetime-local" id="remindAt" class="input" value="${remindAt}">
+            <button class="btn btn-primary" id="pickDateBtn" style="width: 100%;">📅 Выбрать дату и время</button>
+            <div id="selectedTime" style="color: var(--accent); margin-top: 10px; font-size: 14px;">${remindAt ? new Date(remindAt).toLocaleString('ru-RU') : ''}</div>
             <div class="form-buttons" style="margin-top: 15px;">
                 <button class="btn btn-primary" id="saveRemindBtn">Сохранить</button>
                 <button class="btn btn-secondary" id="cancelRemindBtn">Отмена</button>
             </div>
         </div>`;
 
+    let selectedDatetime = remindAt;
+
+    document.getElementById('pickDateBtn').addEventListener('click', () => {
+        const input = document.createElement('input');
+        input.type = 'datetime-local';
+        if (selectedDatetime) {
+            const d = new Date(selectedDatetime);
+            const offset = d.getTimezoneOffset() * 60000;
+            const local = new Date(d.getTime() - offset);
+            input.value = local.toISOString().slice(0, 16);
+        }
+        input.style.position = 'fixed';
+        input.style.left = '-9999px';
+        input.style.opacity = '0';
+        document.body.appendChild(input);
+        input.addEventListener('change', () => {
+            if (input.value) {
+                selectedDatetime = new Date(input.value).toISOString();
+                document.getElementById('selectedTime').textContent = new Date(selectedDatetime).toLocaleString('ru-RU');
+            }
+            input.remove();
+        });
+        input.focus();
+        input.click();
+        if (input.showPicker) input.showPicker();
+    });
+
     document.getElementById('saveRemindBtn').addEventListener('click', async () => {
-        const datetime = document.getElementById('remindAt').value;
-        if (datetime) {
-            const formatted = datetime.replace('T', ' ').slice(0, 16);
+        if (selectedDatetime) {
             await fetch(`/tasks/${taskId}/remind`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ remind_at: formatted })
+                body: JSON.stringify({ remind_at: new Date(selectedDatetime).toISOString().slice(0, 16) })
             });
             loadTasks();
         }
