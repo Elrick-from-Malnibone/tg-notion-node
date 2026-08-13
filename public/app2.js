@@ -163,7 +163,7 @@ async function toggleTask(id, isDone) {
 }
 
 async function deleteTask(id) {
-    await apiDelete(`/tasks?id=${id}&initData=${encodeURIComponent(INIT_DATA)}`);
+    await apiDelete(`/tasks?id=${id}&initData=${INIT_DATA}`);
     loadTasks();
 }
 
