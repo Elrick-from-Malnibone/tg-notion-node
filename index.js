@@ -366,7 +366,7 @@ const server = http.createServer((req, res) => {
     // API: GET /tasks?user_id=...
     if (pathname === '/tasks' && req.method === 'GET') {
         const userId = parseInt(parsedUrl.query.user_id || '0');
-        const tasks = db.prepare('SELECT id, title, is_done, created_at FROM tasks WHERE user_id = ? ORDER BY created_at DESC').all(userId);
+        const tasks = db.prepare('SELECT id, title, is_done, remind_at, created_at FROM tasks WHERE user_id = ? ORDER BY created_at DESC').all(userId);
         res.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
         res.end(JSON.stringify({ tasks }));
         return;
