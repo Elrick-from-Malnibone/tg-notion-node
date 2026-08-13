@@ -99,7 +99,8 @@ async function deleteNote(id) {
 // ====== ЗАДАЧИ ======
 async function loadTasks() {
     try {
-        const userId = tg.initDataUnsafe.user.id;
+        const userId = tg.initDataUnsafe?.user?.id;
+        if (!userId) return;
         const data = await apiGet(`/tasks?user_id=${userId}`);
         renderTasks(data.tasks);
     } catch(e) { console.error(e); }
