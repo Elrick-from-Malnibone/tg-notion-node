@@ -6,6 +6,7 @@ let currentTab = 'notes';
 let currentBoardHash = '';
 const API = '/notes';
 const BOARDS_API = '/api/boards';
+const INIT_DATA = tg.initData;
 
 // ====== ТЕМА ======
 let currentTheme = localStorage.getItem('tgnotion_theme') || 'dark';
@@ -85,13 +86,13 @@ function showNoteForm() {
     document.getElementById('saveNoteBtn').addEventListener('click', async () => {
         const title = document.getElementById('noteTitle').value.trim();
         const content = document.getElementById('noteContent').value.trim();
-        if (title) { await apiPost(API, { user_id: tg.initDataUnsafe.user.id, title, content }); loadNotes(); }
+        if (title) { await apiPost(API, { initData: INIT_DATA, title, content }); loadNotes(); }
     });
     document.getElementById('cancelNoteBtn').addEventListener('click', loadNotes);
 }
 
 async function deleteNote(id) {
-    await apiDelete(`${API}?id=${id}&user_id=${tg.initDataUnsafe.user.id}`);
+    await apiDelete(`${API}?id=${id}&initData=${encodeURIComponent(INIT_DATA)}`);
     loadNotes();
 }
 
@@ -151,17 +152,17 @@ function showTaskForm() {
         </div>`;
     document.getElementById('saveTaskBtn').addEventListener('click', async () => {
         const title = document.getElementById('taskTitle').value.trim();
-        if (title) { await apiPost('/tasks', { user_id: tg.initDataUnsafe.user.id, title }); loadTasks(); }
+        if (title) { await apiPost('/tasks', { initData: INIT_DATA, title }); loadTasks(); }
     });
     document.getElementById('cancelTaskBtn').addEventListener('click', loadTasks);
 }
 
 async function toggleTask(id, isDone) {
-    await fetch('/tasks', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, is_done: isDone }) });
+    await fetch('/tasks', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, is_done: isDone, initData: INIT_DATA })});
 }
 
 async function deleteTask(id) {
-    await apiDelete(`/tasks?id=${id}&user_id=${tg.initDataUnsafe.user.id}`);
+    await apiDelete(`/tasks?id=${id}&initData=${encodeURIComponent(INIT_DATA)}`);
     loadTasks();
 }
 
@@ -229,7 +230,7 @@ function showBoardForm() {
     document.getElementById('saveBoardBtn').addEventListener('click', async () => {
         const title = document.getElementById('boardTitle').value.trim();
         if (title) {
-            const result = await apiPost(BOARDS_API, { user_id: tg.initDataUnsafe?.user?.id || 0, title, type: boardType });
+            const result = await apiPost(BOARDS_API, { initData: INIT_DATA, title, type: boardType });
             if (result.ok) {
                 if (boardType === 'task') {
                     // Для доски задач — сразу открываем форму добавления задачи
@@ -268,7 +269,7 @@ function showBoardTaskForm(boardHash) {
     document.getElementById('saveBoardTaskBtn').addEventListener('click', async () => {
         const title = document.getElementById('boardTaskTitle').value.trim();
         if (title) {
-            await apiPost(`/api/boards/${boardHash}/tasks`, { author_id: userId, title });
+            await apiPost(`/api/boards/${boardHash}/tasks`, { initData: INIT_DATA, title });
             document.getElementById('boardTaskTitle').value = '';
             viewBoard(boardHash);
         }
@@ -347,7 +348,7 @@ async function toggleBoardTask(boardHash, noteId, isDone) {
     await fetch(`/api/boards/${boardHash}/tasks/${noteId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ is_done: isDone, user_id: tg.initDataUnsafe.user.id })
+        body: JSON.stringify({ is_done: isDone, initData: INIT_DATA })
     });
 }
 
@@ -375,7 +376,7 @@ function showBoardNoteMenu(event, boardHash, noteId, noteTitle, noteContent) {
 }
 
 async function deleteBoardNote(boardHash, noteId) {
-    await apiDelete(`/api/boards/${boardHash}/notes/${noteId}?user_id=${tg.initDataUnsafe.user.id}`);
+    await apiDelete(`/api/boards/${boardHash}/notes/${noteId}?initData=${encodeURIComponent(INIT_DATA)}`);
     viewBoard(boardHash);
 }
 
@@ -417,7 +418,7 @@ function showBoardMenu(event, hash) {
 
 async function deleteBoard(hash) {
     if (confirm('Удалить всю доску?')) {
-        await apiDelete(`/api/boards/${hash}`);
+        await apiDelete(`/api/boards/${hash}?initData=${encodeURIComponent(INIT_DATA)}`);
         loadBoards();
     }
 }
@@ -438,7 +439,7 @@ function showBoardNoteForm(boardHash) {
         const title = document.getElementById('boardNoteTitle').value.trim();
         const content = document.getElementById('boardNoteContent').value.trim();
         if (title) {
-            await apiPost(`/api/boards/${boardHash}/notes`, { author_id: userId, title, content });
+            await apiPost(`/api/boards/${boardHash}/notes`, { initData: INIT_DATA, title, content });
             tg.close();
         }
     });
