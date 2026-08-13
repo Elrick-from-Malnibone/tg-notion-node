@@ -468,7 +468,8 @@ const server = http.createServer((req, res) => {
         req.on('end', () => {
             const taskId = parseInt(taskRemindMatch[1]);
             const { remind_at } = JSON.parse(body);
-            db.prepare('UPDATE tasks SET remind_at = ? WHERE id = ?').run(remind_at, taskId);
+            const timestamp = new Date(remind_at).getTime();
+            db.prepare('UPDATE tasks SET remind_at = ? WHERE id = ?').run(timestamp, taskId);
             res.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
             res.end(JSON.stringify({ ok: true }));
         });
@@ -720,10 +721,9 @@ const server = http.createServer((req, res) => {
 
 // Проверка напоминаний каждую минуту
 setInterval(async () => {
-    const now = new Date();
-    const nowStr = `${String(now.getDate()).padStart(2, '0')}.${String(now.getMonth() + 1).padStart(2, '0')}.${now.getFullYear()} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+    const now = Date.now();
     
-    const dueTasks = db.prepare('SELECT id, user_id, title FROM tasks WHERE remind_at = ? AND is_done = 0').all(nowStr);
+    const dueTasks = db.prepare('SELECT id, user_id, title FROM tasks WHERE remind_at IS NOT NULL AND remind_at <= ? AND is_done = 0').all(now);
     
     for (const task of dueTasks) {
         try {
