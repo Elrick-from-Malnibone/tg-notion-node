@@ -3,30 +3,8 @@ const path = require('path');
 const fs = require('fs');
 const http = require('http');
 const url = require('url');
-const crypto = require('crypto');
 const db = require('./db');
 const boardsApi = require('./api/boards');
-
-function verifyInitData(initData) {
-    if (!initData) return ADMIN_ID;
-    
-    const secret = crypto.createHmac('sha256', 'WebAppData').update(TOKEN).digest();
-    const pairs = initData.split('&');
-    const hash = pairs.find(p => p.startsWith('hash='));
-    if (!hash) return null;
-    
-    const dataCheckString = pairs
-        .filter(p => !p.startsWith('hash='))
-        .sort()
-        .join('\n');
-    
-    const calculatedHash = crypto.createHmac('sha256', secret).update(dataCheckString).digest('hex');
-    if (calculatedHash !== hash.split('=')[1]) return null;
-    
-    const user = pairs.find(p => p.startsWith('user='));
-    if (!user) return null;
-    return JSON.parse(decodeURIComponent(user.split('=')[1])).id;
-}
 
 const pendingBoardNotes = new Map();
 
@@ -362,18 +340,12 @@ const server = http.createServer((req, res) => {
         return;
     }
 
-        // API: POST /notes
+    // API: POST /notes
     if (pathname === '/notes' && req.method === 'POST') {
         let body = '';
         req.on('data', chunk => body += chunk);
         req.on('end', () => {
-            const { initData, title, content } = JSON.parse(body);
-            const user_id = verifyInitData(initData);
-            if (!user_id) {
-                res.writeHead(403, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
-                res.end(JSON.stringify({ ok: false, error: 'Invalid initData' }));
-                return;
-            }
+            const { user_id, title, content } = JSON.parse(body);
             const result = db.prepare('INSERT INTO notes (user_id, title, content) VALUES (?, ?, ?)').run(user_id, title, content || '');
             res.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
             res.end(JSON.stringify({ ok: true, id: result.lastInsertRowid }));
@@ -381,23 +353,17 @@ const server = http.createServer((req, res) => {
         return;
     }
 
-        // API: DELETE /notes
+    // API: DELETE /notes
     if (pathname === '/notes' && req.method === 'DELETE') {
         const id = parseInt(parsedUrl.query.id || '0');
-        const initData = parsedUrl.query.initData || '';
-        const userId = verifyInitData(initData);
-        if (!userId) {
-            res.writeHead(403, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
-            res.end(JSON.stringify({ ok: false, error: 'Invalid initData' }));
-            return;
-        }
+        const userId = parseInt(parsedUrl.query.user_id || '0');
         db.prepare('DELETE FROM notes WHERE id = ? AND user_id = ?').run(id, userId);
         res.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
         res.end(JSON.stringify({ ok: true }));
         return;
     }
 
-        // API: GET /tasks?user_id=...
+    // API: GET /tasks?user_id=...
     if (pathname === '/tasks' && req.method === 'GET') {
         const userId = parseInt(parsedUrl.query.user_id || '0');
         const tasks = db.prepare('SELECT id, title, is_done, created_at FROM tasks WHERE user_id = ? ORDER BY created_at DESC').all(userId);
@@ -406,18 +372,12 @@ const server = http.createServer((req, res) => {
         return;
     }
 
-        // API: POST /tasks
+    // API: POST /tasks
     if (pathname === '/tasks' && req.method === 'POST') {
         let body = '';
         req.on('data', chunk => body += chunk);
         req.on('end', () => {
-            const { initData, title } = JSON.parse(body);
-            const user_id = verifyInitData(initData);
-            if (!user_id) {
-                res.writeHead(403, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
-                res.end(JSON.stringify({ ok: false, error: 'Invalid initData' }));
-                return;
-            }
+            const { user_id, title } = JSON.parse(body);
             const result = db.prepare('INSERT INTO tasks (user_id, title) VALUES (?, ?)').run(user_id, title);
             res.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
             res.end(JSON.stringify({ ok: true, id: result.lastInsertRowid }));
@@ -425,42 +385,30 @@ const server = http.createServer((req, res) => {
         return;
     }
 
-        // API: PUT /tasks (toggle done)
+    // API: PUT /tasks (toggle done)
     if (pathname === '/tasks' && req.method === 'PUT') {
         let body = '';
         req.on('data', chunk => body += chunk);
         req.on('end', () => {
-            const { initData, id, is_done } = JSON.parse(body);
-            const user_id = verifyInitData(initData);
-            if (!user_id) {
-                res.writeHead(403, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
-                res.end(JSON.stringify({ ok: false, error: 'Invalid initData' }));
-                return;
-            }
-            db.prepare('UPDATE tasks SET is_done = ? WHERE id = ? AND user_id = ?').run(is_done ? 1 : 0, id, user_id);
+            const { id, is_done } = JSON.parse(body);
+            db.prepare('UPDATE tasks SET is_done = ? WHERE id = ?').run(is_done ? 1 : 0, id);
             res.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
             res.end(JSON.stringify({ ok: true }));
         });
         return;
     }
 
-        // API: DELETE /tasks
+    // API: DELETE /tasks
     if (pathname === '/tasks' && req.method === 'DELETE') {
         const id = parseInt(parsedUrl.query.id || '0');
-        const initData = parsedUrl.query.initData || '';
-        const userId = verifyInitData(initData);
-        if (!userId) {
-            res.writeHead(403, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
-            res.end(JSON.stringify({ ok: false, error: 'Invalid initData' }));
-            return;
-        }
+        const userId = parseInt(parsedUrl.query.user_id || '0');
         db.prepare('DELETE FROM tasks WHERE id = ? AND user_id = ?').run(id, userId);
         res.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
         res.end(JSON.stringify({ ok: true }));
         return;
     }
 
-        // API: POST /tasks/:id/remind
+    // API: POST /tasks/:id/remind
     const taskRemindMatch = pathname.match(/^\/tasks\/(\d+)\/remind$/);
     if (taskRemindMatch && req.method === 'POST') {
         let body = '';
@@ -475,8 +423,8 @@ const server = http.createServer((req, res) => {
         });
         return;
     }
-    
-        // API: GET /boards?user_id=...
+
+    // API: GET /boards?user_id=...
     if (pathname === '/api/boards' && req.method === 'GET') {
         const query = require('url').parse(req.url, true).query;
         const userId = parseInt(query.user_id || '0');
@@ -486,18 +434,12 @@ const server = http.createServer((req, res) => {
         return;
     }
 
-            // API: POST /boards
+    // API: POST /boards
     if (pathname === '/api/boards' && req.method === 'POST') {
         let body = '';
         req.on('data', chunk => body += chunk);
         req.on('end', () => {
-            const { initData, title, type } = JSON.parse(body);
-            const user_id = verifyInitData(initData);
-            if (!user_id) {
-                res.writeHead(403, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
-                res.end(JSON.stringify({ ok: false, error: 'Invalid initData' }));
-                return;
-            }
+            const { user_id, title, type } = JSON.parse(body);
             const board = boardsApi.createBoard(user_id, title, type);
             res.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
             res.end(JSON.stringify({ ok: true, hash: board.hash }));
@@ -535,19 +477,13 @@ const server = http.createServer((req, res) => {
         return;
     }
 
-        // API: POST /api/boards/:hash/notes
+    // API: POST /api/boards/:hash/notes
     const boardNotesMatch = pathname.match(/^\/api\/boards\/([a-f0-9]+)\/notes$/);
     if (boardNotesMatch && req.method === 'POST') {
         let body = '';
         req.on('data', chunk => body += chunk);
         req.on('end', () => {
-            const { initData, title, content, type } = JSON.parse(body);
-            const author_id = verifyInitData(initData);
-            if (!author_id) {
-                res.writeHead(403, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
-                res.end(JSON.stringify({ ok: false, error: 'Invalid initData' }));
-                return;
-            }
+            const { author_id, title, content, type } = JSON.parse(body);
             const note = boardsApi.addNote(boardNotesMatch[1], author_id, title, content, type);
             if (!note) {
                 res.writeHead(404, { 'Access-Control-Allow-Origin': '*' });
@@ -560,19 +496,13 @@ const server = http.createServer((req, res) => {
         return;
     }
 
-            // API: POST /api/boards/:hash/tasks
+    // API: POST /api/boards/:hash/tasks
     const boardTasksMatch = pathname.match(/^\/api\/boards\/([a-f0-9]+)\/tasks$/);
     if (boardTasksMatch && req.method === 'POST') {
         let body = '';
         req.on('data', chunk => body += chunk);
         req.on('end', () => {
-            const { initData, title } = JSON.parse(body);
-            const author_id = verifyInitData(initData);
-            if (!author_id) {
-                res.writeHead(403, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
-                res.end(JSON.stringify({ ok: false, error: 'Invalid initData' }));
-                return;
-            }
+            const { author_id, title } = JSON.parse(body);
             
             // Авторегистрация
             const user = db.prepare('SELECT id FROM users WHERE id = ?').get(author_id);
@@ -593,23 +523,17 @@ const server = http.createServer((req, res) => {
         });
         return;
     }
-  
-            // API: PUT /api/boards/:hash/tasks/:id (toggle)
+
+    // API: PUT /api/boards/:hash/tasks/:id (toggle)
     const boardTaskToggleMatch = pathname.match(/^\/api\/boards\/([a-f0-9]+)\/tasks\/(\d+)$/);
     if (boardTaskToggleMatch && req.method === 'PUT') {
         let body = '';
         req.on('data', chunk => body += chunk);
         req.on('end', () => {
-            const { initData, is_done } = JSON.parse(body);
-            const user_id = verifyInitData(initData);
-            if (!user_id) {
-                res.writeHead(403, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
-                res.end(JSON.stringify({ ok: false, error: 'Invalid initData' }));
-                return;
-            }
+            const { is_done, user_id } = JSON.parse(body);
             const taskId = parseInt(boardTaskToggleMatch[2]);
             const task = db.prepare('SELECT author_id FROM board_notes WHERE id = ?').get(taskId);
-            if (!task || task.author_id !== user_id) {
+            if (!task || task.author_id !== parseInt(user_id)) {
                 res.writeHead(403, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
                 res.end(JSON.stringify({ ok: false, error: 'Forbidden' }));
                 return;
@@ -621,7 +545,7 @@ const server = http.createServer((req, res) => {
         return;
     }
 
-        // API: POST /api/boards/share
+    // API: POST /api/boards/share
     if (pathname === '/api/boards/share' && req.method === 'POST') {
         let body = '';
         req.on('data', chunk => body += chunk);
@@ -648,35 +572,22 @@ const server = http.createServer((req, res) => {
         return;
     }
 
-            // API: DELETE /api/boards/:hash/notes/:id
+    // API: DELETE /api/boards/:hash/notes/:id
     const boardNoteDeleteMatch = pathname.match(/^\/api\/boards\/([a-f0-9]+)\/notes\/(\d+)$/);
     if (boardNoteDeleteMatch && req.method === 'DELETE') {
-        const initData = parsedUrl.query.initData || '';
-        const userId = verifyInitData(initData);
-        if (!userId) {
-            res.writeHead(403, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
-            res.end(JSON.stringify({ ok: false, error: 'Invalid initData' }));
-            return;
-        }
+        const userId = parseInt(parsedUrl.query.user_id || '0');
         const ok = boardsApi.deleteNote(boardNoteDeleteMatch[1], parseInt(boardNoteDeleteMatch[2]), userId);
         res.writeHead(ok ? 200 : 403, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
         res.end(JSON.stringify({ ok }));
         return;
     }
 
-        // API: DELETE /api/boards/:hash
+    // API: DELETE /api/boards/:hash
     const boardDeleteMatch = pathname.match(/^\/api\/boards\/([a-f0-9]+)$/);
     if (boardDeleteMatch && req.method === 'DELETE') {
-        const initData = parsedUrl.query.initData || '';
-        const userId = verifyInitData(initData);
-        if (!userId) {
-            res.writeHead(403, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
-            res.end(JSON.stringify({ ok: false, error: 'Invalid initData' }));
-            return;
-        }
         const hash = boardDeleteMatch[1];
-        const board = db.prepare('SELECT id, created_by FROM boards WHERE hash = ?').get(hash);
-        if (board && board.created_by === userId) {
+        const board = db.prepare('SELECT id FROM boards WHERE hash = ?').get(hash);
+        if (board) {
             db.prepare('DELETE FROM board_notes WHERE board_id = ?').run(board.id);
             db.prepare('DELETE FROM boards WHERE id = ?').run(board.id);
         }
@@ -685,7 +596,7 @@ const server = http.createServer((req, res) => {
         return;
     }
 
-        // API: PUT /api/boards/:hash/notes/:id
+    // API: PUT /api/boards/:hash/notes/:id
     const boardNoteUpdateMatch = pathname.match(/^\/api\/boards\/([a-f0-9]+)\/notes\/(\d+)$/);
     if (boardNoteUpdateMatch && req.method === 'PUT') {
         let body = '';
@@ -699,7 +610,7 @@ const server = http.createServer((req, res) => {
         return;
     }
 
-     // Health check для Bothost/Telegram
+    // Health check для Bothost/Telegram
     if (pathname === '/health' && req.method === 'GET') {
         res.writeHead(200, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ ok: true }));
