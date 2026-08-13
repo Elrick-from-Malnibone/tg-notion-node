@@ -129,7 +129,7 @@ function showTaskMenu(event, id) {
     const menu = document.createElement('div');
     menu.className = 'context-menu';
     menu.innerHTML = `
-        <button onclick="showRemindForm(${id}); this.parentElement.remove()">
+        <button onclick="showRemindForm(${id}, '${task.remind_at || ''}'); this.parentElement.remove()">
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style="vertical-align: middle; margin-right: 5px;"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5"/><path d="M8 5v3l2 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
             Напомнить
         </button>
@@ -444,29 +444,17 @@ function showBoardNoteForm(boardHash) {
     document.getElementById('cancelBoardNoteBtn').addEventListener('click', () => viewBoard(boardHash));
 }
 
-function showRemindForm(taskId) {
+function showRemindForm(taskId, remindAt = '') {
     const content = document.getElementById('content');
     content.innerHTML = `
         <div class="form" style="text-align: center;">
             <p style="color: var(--text-secondary); margin-bottom: 15px;">Когда напомнить?</p>
-            <div style="position: relative;">
-                <input type="datetime-local" id="remindAt" class="input" style="position: absolute; opacity: 0; width: 100%; height: 100%; top: 0; left: 0; cursor: pointer;">
-                <button class="btn btn-primary" style="width: 100%;">📅 Выбрать дату и время</button>
-            </div>
-            <div id="selectedTime" style="color: var(--accent); margin-top: 10px; font-size: 14px;"></div>
+            <input type="datetime-local" id="remindAt" class="input" value="${remindAt}">
             <div class="form-buttons" style="margin-top: 15px;">
                 <button class="btn btn-primary" id="saveRemindBtn">Сохранить</button>
                 <button class="btn btn-secondary" id="cancelRemindBtn">Отмена</button>
             </div>
         </div>`;
-
-    document.getElementById('remindAt').addEventListener('change', () => {
-        const value = document.getElementById('remindAt').value;
-        if (value) {
-            const formatted = value.replace('T', ' ').slice(0, 16);
-            document.getElementById('selectedTime').textContent = formatted;
-        }
-    });
 
     document.getElementById('saveRemindBtn').addEventListener('click', async () => {
         const datetime = document.getElementById('remindAt').value;
