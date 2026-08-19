@@ -640,6 +640,18 @@ if (langBtn) {
     });
 }
 
+// Обновляем текст вкладок
+function updateTabs() {
+    const notesTab = document.querySelector('[data-tab="notes"]');
+    const tasksTab = document.querySelector('[data-tab="tasks"]');
+    const boardsTab = document.querySelector('[data-tab="boards"]');
+    if (notesTab) notesTab.textContent = t('notes');
+    if (tasksTab) tasksTab.textContent = t('tasks');
+    if (boardsTab) boardsTab.textContent = t('boards');
+}
+
+updateTabs();
+
 const startParam = tg.initDataUnsafe?.start_param || new URLSearchParams(location.search).get('tgWebAppStartParam');
 
 if (startParam?.startsWith('board_task_add_')) {
