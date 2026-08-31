@@ -8,7 +8,11 @@ const API = '/notes';
 const BOARDS_API = '/api/boards';
 
 // ====== ЯЗЫК ======
-let currentLang = localStorage.getItem('tgnotion_lang') || 'ru';
+const telegramLang = tg.initDataUnsafe?.user?.language_code;
+
+let currentLang =
+    localStorage.getItem('tgnotion_lang') ||
+    (telegramLang?.startsWith('ru') ? 'ru' : 'en');
 
 const translations = {
     ru: {
@@ -104,7 +108,9 @@ const translations = {
 };
 
 function t(key) {
-    return translations[currentLang][key] || translations.ru[key] || key;
+    return translations[currentLang]?.[key]
+        ?? translations.ru?.[key]
+        ?? key;
 }
 
 // ====== ТЕМА ======
@@ -550,7 +556,7 @@ function showRemindForm(taskId, remindAt = '') {
         <div class="form" style="text-align: center;">
             <p style="color: var(--text-secondary); margin-bottom: 15px;">${t('remindWhen')}</p>
             <button class="btn btn-primary" id="pickDateBtn" style="width: 100%;">${t('pickDateTime')}</button>
-            <div id="selectedTime" style="color: var(--accent); margin-top: 10px; font-size: 14px;">${remindAt ? new Date(remindAt).toLocaleString('ru-RU') : ''}</div>
+            <div id="selectedTime" style="color: var(--accent); margin-top: 10px; font-size: 14px;">${remindAt ? new Date(remindAt).toLocaleString(currentLang === 'ru' ? 'ru-RU' : 'en-US') : ''}</div>
             <div class="form-buttons" style="margin-top: 15px;">
                 <button class="btn btn-primary" id="saveRemindBtn">${t('save')}</button>
                 <button class="btn btn-secondary" id="cancelRemindBtn">${t('cancel')}</button>
@@ -575,7 +581,7 @@ function showRemindForm(taskId, remindAt = '') {
         input.addEventListener('change', () => {
             if (input.value) {
                 selectedDatetime = new Date(input.value).toISOString();
-                document.getElementById('selectedTime').textContent = new Date(selectedDatetime).toLocaleString('ru-RU');
+                document.getElementById('selectedTime').textContent = new Date(selectedDatetime).toLocaleString(currentLang === 'ru' ? 'ru-RU' : 'en-US');
             }
             input.remove();
         });
@@ -666,7 +672,7 @@ if (startParam?.startsWith('board_add_')) {
     currentBoardHash = hash;
     currentTab = 'boards';
     fetch(`/api/boards/${hash}`).then(r => r.json()).then(data => {
-        alert('Тип доски: ' + data.board?.type);
+        alert(t('boardType') + ' ' + data.board?.type);
         if (data.board?.type === 'task') {
             setTimeout(() => showBoardTaskForm(hash), 100);
         } else {

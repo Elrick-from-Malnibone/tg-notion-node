@@ -6,6 +6,31 @@ const url = require('url');
 const db = require('./db');
 const boardsApi = require('./api/boards');
 
+// ====== ПЕРЕВОДЫ ======
+function getLang(from) {
+    return from?.language_code?.startsWith('ru') ? 'ru' : 'en';
+}
+
+function t(lang, key) {
+    const translations = {
+        ru: {
+            add: '➕ Добавить',
+            openBoard: '📝 Открыть доску',
+            refresh: '🔄 Обновить',
+            newUser: 'Новый пользователь через доску',
+            boardNotFound: 'Доска не найдена'
+        },
+        en: {
+            add: '➕ Add',
+            openBoard: '📝 Open board',
+            refresh: '🔄 Refresh',
+            newUser: 'New user via board',
+            boardNotFound: 'Board not found'
+        }
+    };
+    return translations[lang]?.[key] || translations.ru[key] || key;
+}
+
 const pendingBoardNotes = new Map();
 
 const TOKEN = process.env.BOT_TOKEN || 'твой_токен';
@@ -39,9 +64,9 @@ bot.onText(/\/start (.+)/, async (msg, match) => {
         await bot.sendMessage(msg.chat.id, `📋 ${board.title}\n\n${notesList}`, {
             reply_markup: {
                 inline_keyboard: [
-                    [{ text: '➕ Добавить', url: `https://t.me/Telega_notion_bot?startapp=board_add_${hash}` }],
-                    [{ text: '📝 Открыть в Mini App', web_app: { url: `https://tgnotion.bothost.tech/boards/${hash}` } }],
-                    [{ text: '🔄 Обновить', callback_data: `refresh_board_${hash}` }]
+                    [{ text: t(getLang(msg.from), 'add'), url: `https://t.me/Telega_notion_bot?startapp=board_add_${hash}` }],
+                    [{ text: t(getLang(msg.from), 'openBoard'), web_app: { url: `https://tgnotion.bothost.tech/boards/${hash}` } }],
+                    [{ text: t(getLang(msg.from), 'refresh'), callback_data: `refresh_board_${hash}` }]
                 ]
             }
         });
@@ -163,7 +188,7 @@ bot.on('callback_query', async (query) => {
 
     if (data.startsWith('refresh_board_')) {
         const hash = data.slice('refresh_board_'.length);
-        await updateInlineBoard(hash, inlineMessageId);
+        await updateInlineBoard(hash, inlineMessageId, getLang(query.from));
         await bot.answerCallbackQuery(query.id, { text: 'Обновлено' });
     }
 });
@@ -221,7 +246,7 @@ bot.on('message', async (msg) => {
     await bot.sendMessage(msg.chat.id, `Готово. Отправлено: ${ok}, не доставлено: ${fail}`);
 });
 
-async function updateInlineBoard(hash, inlineMessageId) {
+async function updateInlineBoard(hash, inlineMessageId, lang = 'ru') {
     const board = boardsApi.getBoard(hash);
     if (!board || !inlineMessageId) return;
 
@@ -240,15 +265,15 @@ async function updateInlineBoard(hash, inlineMessageId) {
 
     const keyboard = isTaskBoard ? {
         inline_keyboard: [
-            [{ text: '➕ Добавить', url: `https://t.me/Telega_notion_bot?startapp=board_task_add_${hash}` }],
-            [{ text: '📝 Открыть доску', url: `https://t.me/Telega_notion_bot?startapp=boards_${hash}` }],
-            [{ text: '🔄 Обновить', callback_data: `refresh_board_${hash}` }]
+            [{ text: t(lang, 'add'), url: `https://t.me/Telega_notion_bot?startapp=board_task_add_${hash}` }],
+            [{ text: t(lang, 'openBoard'), url: `https://t.me/Telega_notion_bot?startapp=boards_${hash}` }],
+            [{ text: t(lang, 'refresh'), callback_data: `refresh_board_${hash}` }]
         ]
     } : {
         inline_keyboard: [
-            [{ text: '➕ Добавить', url: `https://t.me/Telega_notion_bot?startapp=board_task_add_${hash}` }],
-            [{ text: '📝 Открыть доску', url: `https://t.me/Telega_notion_bot?startapp=boards_${hash}` }],
-            [{ text: '🔄 Обновить', callback_data: `refresh_board_${hash}` }]
+            [{ text: t(lang, 'add'), url: `https://t.me/Telega_notion_bot?startapp=board_task_add_${hash}` }],
+            [{ text: t(lang, 'openBoard'), url: `https://t.me/Telega_notion_bot?startapp=boards_${hash}` }],
+            [{ text: t(lang, 'refresh'), callback_data: `refresh_board_${hash}` }]
         ]
     };
 
@@ -294,9 +319,9 @@ bot.on('inline_query', async (query) => {
             },
             reply_markup: {
                 inline_keyboard: [
-                    [{ text: '➕ Добавить', url: `https://t.me/Telega_notion_bot?startapp=board_task_add_${hash}` }],
-                    [{ text: '📝 Открыть доску', url: `https://t.me/Telega_notion_bot?startapp=boards_${hash}` }],
-                    [{ text: '🔄 Обновить', callback_data: `refresh_board_${hash}` }]
+                    [{ text: t(getLang(query.from), 'add'), url: `https://t.me/Telega_notion_bot?startapp=board_task_add_${hash}` }],
+                    [{ text: t(getLang(query.from), 'openBoard'), url: `https://t.me/Telega_notion_bot?startapp=boards_${hash}` }],
+                    [{ text: t(getLang(query.from), 'refresh'), callback_data: `refresh_board_${hash}` }]
                 ]
             }
         }], {
