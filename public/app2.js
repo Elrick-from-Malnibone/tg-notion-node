@@ -641,7 +641,6 @@ if (langBtn) {
     langBtn.addEventListener('click', () => {
         currentLang = currentLang === 'ru' ? 'en' : 'ru';
         localStorage.setItem('tgnotion_lang', currentLang);
-        langBtn.textContent = currentLang === 'ru' ? 'EN' : 'RU';
         location.reload();
     });
 }
