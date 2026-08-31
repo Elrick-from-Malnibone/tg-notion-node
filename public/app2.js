@@ -638,6 +638,7 @@ if (themeBtn) {
 
 const langBtn = document.getElementById('langBtn');
 if (langBtn) {
+    langBtn.textContent = currentLang === 'ru' ? 'EN' : 'RU';
     langBtn.addEventListener('click', () => {
         currentLang = currentLang === 'ru' ? 'en' : 'ru';
         localStorage.setItem('tgnotion_lang', currentLang);
@@ -648,6 +649,7 @@ if (langBtn) {
         else if (currentTab === 'boards') loadBoards();
     });
 }
+
 
 // Обновляем текст вкладок
 function updateTabs() {
