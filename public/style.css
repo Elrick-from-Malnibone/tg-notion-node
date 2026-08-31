@@ -532,3 +532,8 @@ body {
     text-decoration: none;
     z-index: 100;
 }
+
+.theme-btn {
+    min-width: 40px;
+    flex-shrink: 0;
+}
