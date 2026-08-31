@@ -304,7 +304,7 @@ bot.on('inline_query', async (query) => {
             messageText += `${done} ${note.title}\n`;
         });
     } else {
-        const notesList = board.notes.slice(0, 5).map(n => `• ${n.title}`).join('\n') || (lang === 'ru' ? 'Пока пусто' : 'Empty');
+        const notesList = board.notes.slice(0, 5).map(n => `• ${n.title}`).join('\n') || (getLang(query.from) === 'ru' ? 'Пока пусто' : 'Empty');
         messageText += notesList;
     }
 
