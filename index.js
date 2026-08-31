@@ -259,7 +259,7 @@ async function updateInlineBoard(hash, inlineMessageId, lang = 'ru') {
             text += `${done} ${note.title}\n`;
         });
     } else {
-        const notesList = board.notes.slice(0, 5).map(n => `• ${n.title}`).join('\n') || 'Пока пусто';
+        const notesList = board.notes.slice(0, 5).map(n => `• ${n.title}`).join('\n') || (lang === 'ru' ? 'Пока пусто' : 'Empty');
         text += notesList;
     }
 
@@ -304,7 +304,7 @@ bot.on('inline_query', async (query) => {
             messageText += `${done} ${note.title}\n`;
         });
     } else {
-        const notesList = board.notes.slice(0, 5).map(n => `• ${n.title}`).join('\n') || 'Пока пусто';
+        const notesList = board.notes.slice(0, 5).map(n => `• ${n.title}`).join('\n') || (lang === 'ru' ? 'Пока пусто' : 'Empty');
         messageText += notesList;
     }
 
@@ -313,7 +313,7 @@ bot.on('inline_query', async (query) => {
             type: 'article',
             id: `board_${hash}`,
             title: `📋 ${board.title}`,
-            description: `${board.notes.length} заметок`,
+            description: `${board.notes.length} ${getLang(query.from) === 'ru' ? 'заметок' : 'notes'}`,
             input_message_content: {
                 message_text: messageText
             },
