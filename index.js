@@ -31,6 +31,30 @@ function t(lang, key) {
     return translations[lang]?.[key] || translations.ru[key] || key;
 }
 
+function notesCount(lang, count) {
+    if (lang === 'en') {
+        return `${count} ${count === 1 ? 'note' : 'notes'}`;
+    }
+
+    const mod10 = count % 10;
+    const mod100 = count % 100;
+
+    let word = 'заметок';
+
+    if (mod10 === 1 && mod100 !== 11) {
+        word = 'заметка';
+    } else if (
+        mod10 >= 2 &&
+        mod10 <= 4 &&
+        !(mod100 >= 12 && mod100 <= 14)
+    ) {
+        word = 'заметки';
+    }
+
+    return `${count} ${word}`;
+}
+
+
 const pendingBoardNotes = new Map();
 
 const TOKEN = process.env.BOT_TOKEN || 'твой_токен';
@@ -60,7 +84,7 @@ bot.onText(/\/start (.+)/, async (msg, match) => {
             bot.sendMessage(msg.chat.id, 'Доска не найдена');
             return;
         }
-        const notesList = board.notes.slice(0, 5).map(n => `• ${n.title}`).join('\n') || 'Пока пусто';
+        const notesList = board.notes.slice(0, 5).map(n => `• ${n.title}`).join('\n') || (getLang(msg.from) === 'ru' ? 'Пока пусто' : 'Empty');
         await bot.sendMessage(msg.chat.id, `📋 ${board.title}\n\n${notesList}`, {
             reply_markup: {
                 inline_keyboard: [
@@ -313,7 +337,7 @@ bot.on('inline_query', async (query) => {
             type: 'article',
             id: `board_${hash}`,
             title: `📋 ${board.title}`,
-            description: `${board.notes.length} ${getLang(query.from) === 'ru' ? 'заметок' : 'notes'}`,
+            description: notesCount(getLang(query.from), board.notes.length),
             input_message_content: {
                 message_text: messageText
             },
@@ -582,7 +606,7 @@ const server = http.createServer((req, res) => {
                 res.end(JSON.stringify({ error: 'Board not found' }));
                 return;
             }
-            const notesList = board.notes.slice(0, 5).map(n => `• ${n.title}`).join('\n') || 'Пока пусто';
+            const notesList = board.notes.slice(0, 5).map(n => `• ${n.title}`).join('\n') || (getLang({ language_code: 'ru' }) === 'ru' ? 'Пока пусто' : 'Empty');
             await bot.sendMessage(chat_id, `📋 ${board.title}\n\n${notesList}`, {
                 reply_markup: {
                     inline_keyboard: [
