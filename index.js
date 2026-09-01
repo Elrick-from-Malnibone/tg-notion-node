@@ -219,7 +219,7 @@ bot.on('callback_query', async (query) => {
     if (data.startsWith('refresh_board_')) {
         const hash = data.slice('refresh_board_'.length);
         const userLang = db.prepare('SELECT lang FROM users WHERE id = ?').get(userId)?.lang;
-        await updateInlineBoard(hash, inlineMessageId, userLang || getLang(query.from));
+        await updateInlineBoard(hash, inlineMessageId, userLang || lang);
         await bot.answerCallbackQuery(query.id, { text: 'Обновлено' });
     }
 });
@@ -324,7 +324,7 @@ bot.on('inline_query', async (query) => {
         bot.sendMessage(ADMIN_ID, `Новый пользователь через доску: @${username || 'без'} (${userId})`);
     }
     const userLang = db.prepare('SELECT lang FROM users WHERE id = ?').get(userId)?.lang;
-    const lang = userLang || getLang(query.from);
+    const lang = userLang || lang;
     const hash = query.query.replace('board_', '');
     const board = boardsApi.getBoard(hash);
     if (!board) return;
