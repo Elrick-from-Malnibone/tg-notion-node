@@ -80,6 +80,14 @@ try {
     // колонка уже существует — игнорируем
 }
 
+// Миграция: добавляем колонку lang в users, если её ещё нет
+try {
+    db.exec(`ALTER TABLE users ADD COLUMN lang TEXT DEFAULT 'ru'`);
+} catch (e) {
+    // колонка уже существует — игнорируем
+}
+
+
 // Миграция: добавляем колонку remind_at в tasks, если её ещё нет
 try {
     db.exec(`ALTER TABLE tasks ADD COLUMN remind_at TEXT`);

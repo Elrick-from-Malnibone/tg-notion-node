@@ -640,14 +640,24 @@ const langBtn = document.getElementById('langBtn');
 if (langBtn) {
     langBtn.textContent = currentLang === 'ru' ? 'EN' : 'RU';
     langBtn.addEventListener('click', () => {
-        currentLang = currentLang === 'ru' ? 'en' : 'ru';
-        localStorage.setItem('tgnotion_lang', currentLang);
-        langBtn.textContent = currentLang === 'ru' ? 'EN' : 'RU';
-        updateTabs();
-        if (currentTab === 'notes') loadNotes();
-        else if (currentTab === 'tasks') loadTasks();
-        else if (currentTab === 'boards') loadBoards();
-    });
+    currentLang = currentLang === 'ru' ? 'en' : 'ru';
+    localStorage.setItem('tgnotion_lang', currentLang);
+    langBtn.textContent = currentLang === 'ru' ? 'EN' : 'RU';
+    updateTabs();
+
+    const userId = tg.initDataUnsafe?.user?.id;
+    if (userId) {
+        fetch('/api/user/lang', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ user_id: userId, lang: currentLang })
+        });
+    }
+
+    if (currentTab === 'notes') loadNotes();
+    else if (currentTab === 'tasks') loadTasks();
+    else if (currentTab === 'boards') loadBoards();
+});
 }
 
 

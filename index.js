@@ -212,7 +212,8 @@ bot.on('callback_query', async (query) => {
 
     if (data.startsWith('refresh_board_')) {
         const hash = data.slice('refresh_board_'.length);
-        await updateInlineBoard(hash, inlineMessageId, getLang(query.from));
+        const userLang = db.prepare('SELECT lang FROM users WHERE id = ?').get(userId)?.lang;
+        await updateInlineBoard(hash, inlineMessageId, userLang || getLang(query.from));
         await bot.answerCallbackQuery(query.id, { text: 'Обновлено' });
     }
 });
@@ -316,6 +317,8 @@ bot.on('inline_query', async (query) => {
         db.prepare('INSERT INTO user_events (user_id, event) VALUES (?, ?)').run(userId, 'registered_inline');
         bot.sendMessage(ADMIN_ID, `Новый пользователь через доску: @${username || 'без'} (${userId})`);
     }
+    const userLang = db.prepare('SELECT lang FROM users WHERE id = ?').get(userId)?.lang;
+    const lang = userLang || getLang(query.from);
     const hash = query.query.replace('board_', '');
     const board = boardsApi.getBoard(hash);
     if (!board) return;
@@ -343,9 +346,9 @@ bot.on('inline_query', async (query) => {
             },
             reply_markup: {
                 inline_keyboard: [
-                    [{ text: t(getLang(query.from), 'add'), url: `https://t.me/Telega_notion_bot?startapp=board_task_add_${hash}` }],
-                    [{ text: t(getLang(query.from), 'openBoard'), url: `https://t.me/Telega_notion_bot?startapp=boards_${hash}` }],
-                    [{ text: t(getLang(query.from), 'refresh'), callback_data: `refresh_board_${hash}` }]
+                    [{ text: t(lang, 'add'), url: `https://t.me/Telega_notion_bot?startapp=board_task_add_${hash}` }],
+                    [{ text: t(lang, 'openBoard'), url: `https://t.me/Telega_notion_bot?startapp=boards_${hash}` }],
+                    [{ text: t(lang, 'refresh'), callback_data: `refresh_board_${hash}` }]
                 ]
             }
         }], {
@@ -467,6 +470,19 @@ const server = http.createServer((req, res) => {
             const { remind_at } = JSON.parse(body);
             const timestamp = new Date(remind_at).getTime();
             db.prepare('UPDATE tasks SET remind_at = ? WHERE id = ?').run(timestamp, taskId);
+            res.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
+            res.end(JSON.stringify({ ok: true }));
+        });
+        return;
+    }
+
+        // API: POST /api/user/lang
+    if (pathname === '/api/user/lang' && req.method === 'POST') {
+        let body = '';
+        req.on('data', chunk => body += chunk);
+        req.on('end', () => {
+            const { user_id, lang } = JSON.parse(body);
+            db.prepare('UPDATE users SET lang = ? WHERE id = ?').run(lang, user_id);
             res.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
             res.end(JSON.stringify({ ok: true }));
         });
