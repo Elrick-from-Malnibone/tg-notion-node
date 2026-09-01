@@ -191,6 +191,12 @@ bot.onText(/\/fix_users/, async (msg) => {
     bot.sendMessage(msg.chat.id, `Восстановлено юзеров: ${added}`);
 });
 
+bot.onText(/\/checklang/, async (msg) => {
+    if (msg.from.id !== ADMIN_ID) return;
+    const lang = db.prepare('SELECT lang FROM users WHERE id = ?').get(msg.from.id)?.lang;
+    bot.sendMessage(msg.chat.id, `Твой язык: ${lang || 'не задан'}`);
+});
+
 bot.onText(/\/ac/, async (msg) => {
     if (msg.from.id !== ADMIN_ID) return;
     bot.sendMessage(msg.chat.id, `🔧 Админ-команды:\n\n/stats — статистика\n/active — активные юзеры\n/broadcast текст — рассылка\n/post — рассылка пересланного поста\n/migrate id1,id2,... — вернуть юзеров\n/fix_users — восстановить потерянных юзеров\n/ac — список команд`);
