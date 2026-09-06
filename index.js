@@ -346,7 +346,7 @@ bot.on('inline_query', async (query) => {
             type: 'article',
             id: `board_${hash}`,
             title: `📋 ${board.title}`,
-            description: notesCount(getLang(query.from), board.notes.length),
+            description: notesCount(lang, board.notes.length),
             input_message_content: {
                 message_text: messageText
             },
